@@ -1,0 +1,35 @@
+.plist { padding: 56px max(16px, calc((100% - 880px) / 2)) 40px; overflow-x: clip; }
+.plist-intro h1 { margin: 0; color: var(--purple); font-size: clamp(36px, 6vw, 60px); line-height: 1.02; letter-spacing: -.06em; }
+.plist-intro p, .plist-count, .plist-empty { color: var(--muted); line-height: 1.7; }
+.plist-intro p { max-width: 540px; margin: 12px 0 0; }
+.plist-toolbar { position: sticky; top: 78px; z-index: 15; display: grid; gap: 12px; padding: 14px 0; background: var(--soft); }
+.plist-search { width: 100%; min-height: 48px; border: 1px solid #e5d8e5; border-radius: 10px; padding: 12px 14px; background: #fff; color: #30223d; font: inherit; font-size: 16px; }
+.plist-summary { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.plist-summary p { flex: 1 1 180px; margin: 0; color: var(--purple); font-weight: 800; }
+.plist-feedback { margin: 0; color: #a8324e; font-size: 13px; font-weight: 700; }
+.plist-count, .plist-empty { margin: 0; font-size: 14px; }
+.plist-columns, .plist-row { display: grid; grid-template-columns: minmax(0, 1fr) 110px auto; gap: 12px 16px; align-items: center; }
+.plist-columns { padding: 0 0 8px; color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.plist-table ul { list-style: none; margin: 0; padding: 0; }
+.plist-row { padding: 14px 0; border-top: 1px solid var(--line); }
+.plist-name { margin: 0; color: var(--purple); font-size: 16px; line-height: 1.35; overflow-wrap: anywhere; }
+.plist-price { margin: 0; color: var(--purple); font-weight: 800; white-space: nowrap; }
+.plist .stepper.plist-stepper button { width: 44px; height: 44px; }
+.plist .stepper.plist-stepper output { min-width: 36px; font-size: 16px; }
+.plist-stepper button:disabled { opacity: .35; cursor: not-allowed; }
+.plist-source-note { margin: -6px 0 16px; color: #655669; font-size: 13px; line-height: 1.55; }
+
+@media (max-width: 660px) {
+  .plist { padding-top: 32px; }
+  .plist-toolbar { top: 67px; }
+  .plist-summary .primary { flex: 1 1 100%; }
+  .plist-table .plist-stepper { margin-right: 54px; }
+}
+
+@media (max-width: 560px) {
+  .plist-columns { display: none; }
+  .plist-row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name name" "price qty"; }
+  .plist-name { grid-area: name; }
+  .plist-price { grid-area: price; }
+  .plist-stepper { grid-area: qty; justify-self: end; }
+}

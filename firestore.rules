@@ -1,0 +1,98 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isVerified() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email is string;
+    }
+
+    function isMainAdmin() {
+      return isVerified()
+        && request.auth.token.email.lower() == 'shriharishcrackerswebsite@gmail.com';
+    }
+
+    function isAdmin() {
+      return isMainAdmin()
+        || (isVerified() && exists(/databases/$(database)/documents/adminAccess/$(request.auth.token.email.lower())));
+    }
+
+    function validName(data) {
+      return data.name is string
+        && data.name.size() > 0
+        && data.name.size() <= 120;
+    }
+
+    function validPrice(data) {
+      return data.price is number
+        && data.price >= 0
+        && data.active is bool
+        && (
+          !('originalPrice' in data)
+          || data.originalPrice == null
+          || (data.originalPrice is number && data.originalPrice >= 0 && data.originalPrice >= data.price)
+        );
+    }
+
+    function validLog(data) {
+      return data.keys().hasOnly(['adminName', 'adminEmail', 'action', 'targetType', 'targetId', 'targetName', 'oldValue', 'newValue', 'createdAt'])
+        && data.adminName is string
+        && data.adminName.size() > 0
+        && data.adminName.size() <= 80
+        && data.adminEmail == request.auth.token.email.lower()
+        && data.action in ['create', 'update', 'delete', 'grant-admin', 'revoke-admin']
+        && data.targetType in ['products', 'productList', 'adminAccess']
+        && data.targetId is string
+        && data.targetId.size() > 0
+        && data.targetId.size() <= 200
+        && data.targetName is string
+        && data.targetName.size() <= 120
+        && (data.oldValue == null || data.oldValue is map)
+        && (data.newValue == null || data.newValue is map)
+        && data.createdAt == request.time;
+    }
+
+    match /products/{productId} {
+      allow read: if resource.data.active == true || isAdmin();
+      allow create, update: if isAdmin()
+        && validName(request.resource.data)
+        && validPrice(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /productList/{itemId} {
+      allow read: if resource.data.active == true || isAdmin();
+      allow create, update: if isAdmin()
+        && validName(request.resource.data)
+        && validPrice(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /adminAccess/{emailId} {
+      allow get: if isMainAdmin()
+        || (isVerified() && request.auth.token.email.lower() == emailId);
+      allow list: if isMainAdmin();
+      allow create: if isMainAdmin()
+        && emailId == request.resource.data.email
+        && emailId != 'shriharishcrackerswebsite@gmail.com'
+        && emailId.matches('^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}$')
+        && emailId.size() <= 120
+        && request.resource.data.keys().hasOnly(['email', 'grantedBy', 'createdAt'])
+        && request.resource.data.grantedBy == request.auth.token.email.lower()
+        && request.resource.data.createdAt == request.time;
+      allow delete: if isMainAdmin()
+        && emailId != 'shriharishcrackerswebsite@gmail.com';
+      allow update: if false;
+    }
+
+    match /activityLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin() && validLog(request.resource.data);
+      allow update, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,21 @@
+// Starter text-only catalog. The live Product List reads Cloud Firestore. An administrator can add any of these that are missing; they are not inserted automatically.
+export const productList = [
+  { id: 'lakshmi-4', name: 'Lakshmi Crackers 4 inch', price: 90, active: true },
+  { id: 'lakshmi-7', name: 'Lakshmi Crackers 7 inch', price: 160, active: true },
+  { id: 'bijili', name: 'Bijili Crackers', price: 45, active: true },
+  { id: 'two-sound', name: 'Two Sound Crackers', price: 70, active: true },
+  { id: 'bullet-bomb', name: 'Bullet Bomb', price: 110, active: true },
+  { id: 'hydro-bomb', name: 'Hydro Bomb', price: 140, active: true },
+  { id: 'ground-chakkar-big', name: 'Ground Chakkar Big', price: 220, active: true },
+  { id: 'ground-chakkar-special', name: 'Ground Chakkar Special', price: 310, active: true },
+  { id: 'flowerpot-big', name: 'Flowerpot Big', price: 280, active: true },
+  { id: 'flowerpot-special', name: 'Flowerpot Special', price: 360, active: true },
+  { id: 'colour-sparklers', name: 'Colour Sparklers', price: 95, active: true },
+  { id: 'electric-sparklers', name: 'Electric Sparklers', price: 130, active: true },
+  { id: 'rocket-bomb', name: 'Rocket Bomb', price: 210, active: true },
+  { id: 'whistling-rocket', name: 'Whistling Rocket', price: 240, active: true },
+  { id: 'pencil', name: 'Pencil', price: 55, active: true },
+  { id: 'chorsa', name: 'Chorsa', price: 175, active: true },
+  { id: 'colour-matches', name: 'Colour Matches', price: 65, active: true },
+  { id: 'peacock', name: 'Peacock Feather', price: 190, active: true },
+];
