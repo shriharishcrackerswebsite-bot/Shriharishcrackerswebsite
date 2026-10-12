@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
-import { Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { moveControlState } from '../../lib/catalogOrder';
 import { products } from '../../data/products';
 import { productList } from '../../data/productList';
 import { money } from '../../lib/money';
@@ -46,11 +47,13 @@ export default function CatalogManager({ kind, actor }) {
   const [feedback, setFeedback] = useState(null);
   const [busy, setBusy] = useState(false);
 
+  const searching = query.trim().length > 0;
   const filtered = useMemo(() => {
     const term = query.trim().toLowerCase();
     if (!term) return catalog.items;
     return catalog.items.filter(item => `${item.name} ${item.category || ''}`.toLowerCase().includes(term));
   }, [catalog.items, query]);
+  const positionById = useMemo(() => new Map(catalog.items.map((item, index) => [item.id, index])), [catalog.items]);
 
   const starter = useMemo(
     () => config.seed.map(config.normalize).filter(item => !catalog.items.some(current => current.id === item.id)),
@@ -87,6 +90,11 @@ export default function CatalogManager({ kind, actor }) {
     setPendingDelete(null);
   }, `Deleted “${pendingDelete.name}” from Firestore.`);
 
+  const moveItem = (item, direction) => run(
+    () => catalog.moveItem(item.id, direction),
+    `Saved the display order for “${item.name}”.`,
+  );
+
   const addStarter = () => run(async () => {
     const outcome = await catalog.importMissing(starter);
     setStarterOpen(false);
@@ -117,6 +125,7 @@ export default function CatalogManager({ kind, actor }) {
         <Search size={16} />
         <input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search by name" aria-label={`Search ${config.title}`} />
       </label>
+      {searching && <p className="admin-form-note">Clear the search before changing display order. Move Up and Move Down apply to the full catalog.</p>}
 
       {form && (
         kind === 'products'
@@ -124,6 +133,7 @@ export default function CatalogManager({ kind, actor }) {
           : <ProductListForm initial={form.mode === 'edit' ? form.item : null} items={catalog.items} onCancel={() => setForm(null)} onSave={saveItem} />
       )}
 
+      {busy && <p className="admin-success" role="status">Saving to Firestore…</p>}
       {catalog.loading && <p className="admin-empty" role="status">Loading from Firestore…</p>}
       {!catalog.loading && !catalog.error && catalog.items.length === 0 && <p className="admin-empty">{config.empty}</p>}
       {!catalog.loading && catalog.items.length > 0 && filtered.length === 0 && <p className="admin-empty">{config.searchEmpty}</p>}
@@ -138,7 +148,10 @@ export default function CatalogManager({ kind, actor }) {
             <span>Visible</span>
             <span>Actions</span>
           </div>
-          {filtered.map(item => (
+          {filtered.map(item => {
+            const position = positionById.get(item.id) ?? -1;
+            const controls = moveControlState(position, catalog.items.length, searching);
+            return (
             <article className={`admin-list__row ${kind}`} role="row" key={item.id}>
               {kind === 'products' && (
                 <div data-label="Image"><img src={item.image || '/image.png'} alt="" /></div>
@@ -154,11 +167,14 @@ export default function CatalogManager({ kind, actor }) {
               {kind === 'products' && <div data-label="Category">{item.category || '—'}</div>}
               <div data-label="Visible">{item.active === false ? 'Hidden' : 'Visible'}</div>
               <div className="admin-row-actions" data-label="Actions">
+                <button type="button" disabled={locked || controls.up} aria-label={`Move ${item.name} up`} onClick={() => moveItem(item, 'up')}><ChevronUp size={15} />Up</button>
+                <button type="button" disabled={locked || controls.down} aria-label={`Move ${item.name} down`} onClick={() => moveItem(item, 'down')}><ChevronDown size={15} />Down</button>
                 <button type="button" disabled={busy} onClick={() => { setForm({ mode: 'edit', item }); setFeedback(null); }}><Pencil size={15} />Edit</button>
                 <button type="button" disabled={busy} onClick={() => setPendingDelete(item)}><Trash2 size={15} />Delete</button>
               </div>
             </article>
-          ))}
+            );
+          })}
         </div>
       )}
 

@@ -39,6 +39,8 @@ export function describeChange(oldValue, newValue) {
     description: 'Description',
     email: 'Email',
     status: 'Status',
+    displayOrder: 'Display order',
+    listDisplayOrder: 'List order',
   };
   const changes = Object.keys(labels).filter(key => (oldValue?.[key] ?? null) !== (newValue?.[key] ?? null));
   if (!changes.length) return 'No field changes';

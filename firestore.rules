@@ -52,11 +52,16 @@ service cloud.firestore {
         && data.createdAt == request.time;
     }
 
+    function validPosition(value) {
+      return value is int && value >= 0 && value <= 100000;
+    }
+
     match /products/{productId} {
       allow read: if resource.data.active == true || isAdmin();
       allow create, update: if isAdmin()
         && validName(request.resource.data)
-        && validPrice(request.resource.data);
+        && validPrice(request.resource.data)
+        && (!('displayOrder' in request.resource.data) || validPosition(request.resource.data.displayOrder));
       allow delete: if isAdmin();
     }
 
@@ -64,7 +69,8 @@ service cloud.firestore {
       allow read: if resource.data.active == true || isAdmin();
       allow create, update: if isAdmin()
         && validName(request.resource.data)
-        && validPrice(request.resource.data);
+        && validPrice(request.resource.data)
+        && (!('listDisplayOrder' in request.resource.data) || validPosition(request.resource.data.listDisplayOrder));
       allow delete: if isAdmin();
     }
 

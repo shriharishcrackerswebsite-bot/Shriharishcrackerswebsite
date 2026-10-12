@@ -13,6 +13,7 @@ import {
 import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
 import { auth, db } from './firebase.js';
 import { normalizeListItem, normalizeProduct } from './catalog.js';
+import { compareCatalog, orderField, planCreateOrder, planDeleteOrder, planImportOrders, planMove } from './catalogOrder.js';
 import { actorFromUser, ADMIN_EMAIL, isMainAdmin, normalizeAdminEmail } from './adminIdentity.js';
 
 export const COLLECTIONS = {
@@ -120,10 +121,12 @@ function parseDoc(kind, snapshot) {
     price,
     active: data.active !== false,
   };
-  return {
-    invalid: false,
-    item: kind === 'products' ? normalizeProduct(raw) : normalizeListItem(raw),
-  };
+  const item = kind === 'products' ? normalizeProduct(raw) : normalizeListItem(raw);
+  const field = orderField(kind);
+  const order = data[field];
+  if (Number.isInteger(order) && order >= 0) item[field] = order;
+  else delete item[field];
+  return { invalid: false, item };
 }
 
 function usableId(id) {
@@ -167,6 +170,35 @@ function documentData(kind, item, creating) {
   return kind === 'products' ? productData(item, creating) : listData(item, creating);
 }
 
+function orderLog(field, value) {
+  return { [field]: value == null ? 'unset' : String(value) };
+}
+
+async function loadCatalogItems(kind) {
+  const snapshot = await getDocs(collection(db, collectionName(kind)));
+  const items = [];
+  snapshot.forEach(entry => {
+    const parsed = parseDoc(kind, entry);
+    if (!parsed.invalid) items.push(parsed.item);
+  });
+  return items;
+}
+
+async function writeOrderPositions(kind, changes) {
+  const field = orderField(kind);
+  const name = collectionName(kind);
+  for (let index = 0; index < changes.length; index += BATCH_LIMIT) {
+    const chunk = changes.slice(index, index + BATCH_LIMIT);
+    const batch = writeBatch(db);
+    chunk.forEach(change => {
+      batch.update(doc(db, name, change.id), { [field]: change.to, updatedAt: serverTimestamp() });
+    });
+    await batch.commit().catch(error => {
+      throw new Error(firestoreErrorMessage(error), { cause: error });
+    });
+  }
+}
+
 function listen(kind, adminView, onData, onError) {
   const ref = collection(db, collectionName(kind));
   const source = adminView ? ref : query(ref, where('active', '==', true));
@@ -178,7 +210,7 @@ function listen(kind, adminView, onData, onError) {
       if (parsed.invalid) invalidCount += 1;
       else items.push(parsed.item);
     });
-    items.sort((left, right) => left.name.localeCompare(right.name, 'en'));
+    items.sort((left, right) => compareCatalog(kind, left, right));
     onData({ items, invalidCount });
   }, error => onError(firestoreErrorMessage(error)));
 }
@@ -232,12 +264,42 @@ export function useAdminCatalog(kind, actor) {
       throw new Error(firestoreErrorMessage(error), { cause: error });
     });
     if (existing.exists()) throw new Error('A record with this id is already in Firestore. It was not overwritten.');
+    const current = await loadCatalogItems(kind).catch(error => {
+      throw new Error(firestoreErrorMessage(error), { cause: error });
+    });
+    const planned = planCreateOrder(kind, current);
+    if (planned.backfill.length) await writeOrderPositions(kind, planned.backfill);
+    const data = documentData(kind, item, true);
+    data[orderField(kind)] = planned.nextOrder;
     const batch = writeBatch(db);
-    batch.set(ref, documentData(kind, item, true));
+    batch.set(ref, data);
     queueActivity(batch, actor, 'create', collectionName(kind), item.id, item.name, null, snapshotValue(kind, item));
     await batch.commit().catch(error => {
       throw new Error(firestoreErrorMessage(error), { cause: error });
     });
+  };
+
+  const moveItem = async (id, direction) => {
+    const current = await loadCatalogItems(kind).catch(error => {
+      throw new Error(firestoreErrorMessage(error), { cause: error });
+    });
+    const planned = planMove(kind, current, id, direction);
+    if (!planned.ok) throw new Error(planned.message);
+    if (!planned.changes.length) return;
+    const field = orderField(kind);
+    const name = collectionName(kind);
+    const moved = planned.moved;
+    const withLog = planned.changes.slice(0, BATCH_LIMIT - 1);
+    const rest = planned.changes.slice(withLog.length);
+    const batch = writeBatch(db);
+    withLog.forEach(change => {
+      batch.update(doc(db, name, change.id), { [field]: change.to, updatedAt: serverTimestamp() });
+    });
+    queueActivity(batch, actor, 'update', name, moved.id, moved.name, orderLog(field, moved.from), orderLog(field, moved.to));
+    await batch.commit().catch(error => {
+      throw new Error(firestoreErrorMessage(error), { cause: error });
+    });
+    if (rest.length) await writeOrderPositions(kind, rest);
   };
 
   const updateItem = async item => {
@@ -261,12 +323,24 @@ export function useAdminCatalog(kind, actor) {
       throw new Error(firestoreErrorMessage(error), { cause: error });
     });
     if (!existing.exists()) throw new Error('That product is no longer in Firestore.');
+    const current = await loadCatalogItems(kind).catch(error => {
+      throw new Error(firestoreErrorMessage(error), { cause: error });
+    });
+    const compact = planDeleteOrder(kind, current, id);
+    const field = orderField(kind);
+    const name = collectionName(kind);
+    const inline = compact.slice(0, BATCH_LIMIT - 2);
+    const rest = compact.slice(inline.length);
     const batch = writeBatch(db);
     batch.delete(ref);
+    inline.forEach(change => {
+      batch.update(doc(db, name, change.id), { [field]: change.to, updatedAt: serverTimestamp() });
+    });
     queueActivity(batch, actor, 'delete', collectionName(kind), id, existing.data().name || id, snapshotValue(kind, existing.data()), null);
     await batch.commit().catch(error => {
       throw new Error(firestoreErrorMessage(error), { cause: error });
     });
+    if (rest.length) await writeOrderPositions(kind, rest);
   };
 
   const importRows = (rows, mode) => writeImport(kind, rows, mode, actor);
@@ -277,7 +351,7 @@ export function useAdminCatalog(kind, actor) {
     matchId: null,
   })), 'add', actor);
 
-  return { items, invalidCount, loading, error, createItem, updateItem, deleteItem, importRows, importMissing };
+  return { items, invalidCount, loading, error, createItem, updateItem, deleteItem, moveItem, importRows, importMissing };
 }
 
 export async function writeImport(kind, rows, mode, actor) {
@@ -332,6 +406,21 @@ export async function writeImport(kind, rows, mode, actor) {
     };
   }
 
+  const existingItems = [];
+  existingById.forEach((data, id) => {
+    const parsed = parseDoc(kind, { id, data: () => data });
+    if (!parsed.invalid) existingItems.push(parsed.item);
+  });
+  const importedOrders = planImportOrders(kind, existingItems, pending.filter(entry => entry.creating).map(entry => entry.id));
+  const orderById = new Map(importedOrders.assignments.map(entry => [entry.id, entry.order]));
+  if (importedOrders.backfill.length) {
+    try {
+      await writeOrderPositions(kind, importedOrders.backfill);
+    } catch (error) {
+      return { ok: false, written: 0, failed: pending.length, message: error.message };
+    }
+  }
+
   let written = 0;
   let added = 0;
   let updated = 0;
@@ -343,6 +432,7 @@ export async function writeImport(kind, rows, mode, actor) {
       chunk.forEach(entry => {
         const ref = doc(db, collectionName(kind), entry.id);
         const data = documentData(kind, entry.item, entry.creating);
+        if (entry.creating) data[orderField(kind)] = orderById.get(entry.id);
         if (entry.creating) batch.set(ref, data);
         else batch.set(ref, data, { merge: true });
         const previous = existingById.get(entry.id);
