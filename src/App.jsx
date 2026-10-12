@@ -7,6 +7,7 @@ import { money } from './lib/money';
 import { goSection, usePathname } from './lib/navigate';
 import { usePublicCatalog } from './lib/firestoreCatalog';
 import ProductListPage from './pages/ProductList';
+import { Analytics } from '@vercel/analytics/react';
 
 const AdminPage = lazy(() => import('./pages/admin/AdminPage.jsx'));
 import './App.css';
@@ -151,5 +152,6 @@ export default function App(){
     <Toast message={toast}/>
     <FloatingContacts/>
     <BottomNav count={count} onCart={()=>setCartOpen(true)} current={onProductList?'product-list':'home'}/>
+    <Analytics/>
   </>;
 }
