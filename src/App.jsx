@@ -108,11 +108,11 @@ function BottomNav({count,onCart,current}){const links=[['Home','home',House],['
 function InstagramGlyph(){return <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7.5 2h9A5.5 5.5 0 0 1 22 7.5v9A5.5 5.5 0 0 1 16.5 22h-9A5.5 5.5 0 0 1 2 16.5v-9A5.5 5.5 0 0 1 7.5 2zm4.5 4.7A5.3 5.3 0 1 0 17.3 12 5.3 5.3 0 0 0 12 6.7zm6.4-1.2a1.25 1.25 0 1 0 1.25 1.25A1.25 1.25 0 0 0 18.4 5.5zM12 8.8A3.2 3.2 0 1 1 8.8 12 3.2 3.2 0 0 1 12 8.8z"/></svg>}
 function WhatsAppGlyph(){return <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12.04 2C6.58 2 2.15 6.4 2.15 11.83c0 1.74.46 3.44 1.34 4.94L2 22l5.39-1.41a10 10 0 0 0 4.65 1.18h.01c5.46 0 9.89-4.4 9.89-9.83C21.94 6.4 17.5 2 12.04 2zm0 17.95h-.01a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.2.84.86-3.12-.2-.32a8.1 8.1 0 0 1-1.25-4.34c0-4.5 3.7-8.16 8.25-8.16 2.2 0 4.27.85 5.83 2.4a8.1 8.1 0 0 1 2.42 5.76c0 4.5-3.7 8.17-8.22 8.17zm4.52-6.11c-.25-.12-1.47-.72-1.7-.8-.23-.09-.39-.12-.56.12-.16.25-.64.8-.78.97-.14.16-.29.18-.54.06-.25-.12-1.05-.39-2-1.23-.74-.66-1.24-1.47-1.38-1.72-.14-.25-.02-.38.11-.5.11-.11.25-.29.37-.43.12-.14.16-.25.25-.41.08-.16.04-.31-.02-.43-.06-.12-.56-1.34-.77-1.84-.2-.48-.41-.42-.56-.43h-.48c-.16 0-.43.06-.66.31-.23.25-.87.85-.87 2.07s.89 2.4 1.01 2.56c.12.16 1.75 2.67 4.24 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.14-1.18-.06-.1-.23-.16-.48-.28z"/></svg>}
 function FloatingContacts(){
-  const whatsappHref=`https://wa.me/919443184404?text=${encodeURIComponent('Hello Shri Harish Crackers, I would like to know more about your crackers and offers.')}`;
+  const whatsappHref=`https://wa.me/919629917375?text=${encodeURIComponent('Hello Shri Harish Crackers, I would like to know more about your crackers and offers.')}`;
   return <div className="float-contacts" role="group" aria-label="Contact Shri Harish Crackers">
     <a className="is-instagram" href="https://www.instagram.com/shri_harish_crackers_valliyur" target="_blank" rel="noopener noreferrer" aria-label="Visit Shri Harish Crackers on Instagram" title="Instagram"><InstagramGlyph/></a>
     <a className="is-whatsapp" href={whatsappHref} target="_blank" rel="noopener noreferrer" aria-label="Chat with Shri Harish Crackers on WhatsApp" title="WhatsApp"><WhatsAppGlyph/></a>
-    <a className="is-call" href="tel:9443184404" aria-label="Call Shri Harish Crackers at 94431 84404" title="Call"><Phone size={22}/></a>
+    <a className="is-call" href="tel:9629917375" aria-label="Call Shri Harish Crackers at 94431 84404" title="Call"><Phone size={22}/></a>
   </div>;
 }
 export default function App(){
