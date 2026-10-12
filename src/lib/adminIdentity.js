@@ -38,6 +38,7 @@ export function describeChange(oldValue, newValue) {
     badge: 'Badge',
     description: 'Description',
     email: 'Email',
+    status: 'Status',
   };
   const changes = Object.keys(labels).filter(key => (oldValue?.[key] ?? null) !== (newValue?.[key] ?? null));
   if (!changes.length) return 'No field changes';

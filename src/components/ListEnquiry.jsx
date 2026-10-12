@@ -3,6 +3,7 @@ import { ChevronLeft, MessageCircle, Minus, Plus, Trash2, X } from 'lucide-react
 import { whatsappUrl } from '../data/business';
 import { money } from '../lib/money';
 import { buildProductListEnquiry, productListTotal, validateCustomer } from '../lib/enquiry';
+import { orderStatusLabel, saveOrder, useCustomerOrder } from '../lib/orders';
 
 export default function ListEnquiry({ open, step, items, onClose, onStep, onQuantity, onRemove }) {
   const [name, setName] = useState('');
@@ -11,17 +12,37 @@ export default function ListEnquiry({ open, step, items, onClose, onStep, onQuan
   const [errors, setErrors] = useState({});
   const [whatsappHref, setWhatsappHref] = useState('');
   const [whatsappReady, setWhatsappReady] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [orderId, setOrderId] = useState('');
+  const order = useCustomerOrder(orderId);
   const total = productListTotal(items);
 
-  const submitEnquiry = event => {
+  const submitEnquiry = async event => {
     event.preventDefault();
+    if (saving) return;
     if (!items.length) {
       setErrors({ form: 'Select a quantity for at least one product.' });
       return;
     }
-    const { errors: nextErrors, cleanName } = validateCustomer(name, phone);
+    const { errors: nextErrors, cleanName, cleanPhone } = validateCustomer(name, phone);
+    if (cleanName.length > 120) nextErrors.name = 'Please enter a shorter name.';
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
+    setSaving(true);
+    try {
+      setOrderId(await saveOrder({
+        customerName: cleanName,
+        phone: cleanPhone,
+        address,
+        source: 'productList',
+        items,
+      }));
+    } catch (error) {
+      setSaving(false);
+      setErrors({ form: error.message || 'The order could not be saved. Please try again.' });
+      return;
+    }
+    setSaving(false);
 
     const { message } = buildProductListEnquiry({ name: cleanName, phone, address, items });
     const href = whatsappUrl(message);
@@ -112,7 +133,9 @@ export default function ListEnquiry({ open, step, items, onClose, onStep, onQuan
             </div>
             <footer className="checkout-footer">
               {errors.form && <p className="checkout-error" role="alert">{errors.form}</p>}
-              <button className="button primary" type="submit">Submit Enquiry <MessageCircle size={18} /></button>
+              <button className="button primary" type="submit" disabled={saving}>{saving ? 'Saving…' : 'Submit Enquiry'} <MessageCircle size={18} /></button>
+              {order.status && <p className="checkout-ready" role="status">Order status: {orderStatusLabel(order.status)}</p>}
+              {order.error && <p className="checkout-error" role="alert">{order.error}</p>}
               {whatsappReady && <p className="checkout-ready" role="status">Your enquiry is ready to send on WhatsApp. Please review it there and press Send.</p>}
               {whatsappHref && !whatsappReady && <a className="checkout-whatsapp-link" href={whatsappHref} target="_blank" rel="noopener noreferrer">Open WhatsApp</a>}
             </footer>

@@ -1,17 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { TriangleAlert } from 'lucide-react';
+import { hasAcceptedNotice, NOTICE_STORAGE_KEY } from '../lib/exitEnquiry';
 import './ImportantNotice.css';
-
-const storageKey = 'shriHarishNoticeAccepted';
-
-function hasAcceptedNotice() {
-  try {
-    return window.localStorage.getItem(storageKey) === 'true';
-  } catch (error) {
-    console.error('Unable to read the important notice acknowledgement.', error);
-    return false;
-  }
-}
 
 export default function ImportantNotice() {
   const [open, setOpen] = useState(() => !hasAcceptedNotice());
@@ -37,10 +27,11 @@ export default function ImportantNotice() {
 
   const acceptNotice = () => {
     try {
-      window.localStorage.setItem(storageKey, 'true');
+      window.localStorage.setItem(NOTICE_STORAGE_KEY, 'true');
     } catch (error) {
       console.error('Unable to save the important notice acknowledgement.', error);
     }
+    window.dispatchEvent(new Event('shc-notice-accepted'));
     setOpen(false);
   };
 

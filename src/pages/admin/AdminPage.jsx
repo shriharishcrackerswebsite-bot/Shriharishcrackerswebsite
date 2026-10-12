@@ -6,11 +6,15 @@ import AdminLogin from '../../components/admin/AdminLogin';
 import CatalogManager from '../../components/admin/CatalogManager';
 import AdminAccessPanel from '../../components/admin/AdminAccessPanel';
 import ActivityLogPanel from '../../components/admin/ActivityLogPanel';
+import ExitEnquiriesPanel from '../../components/admin/ExitEnquiriesPanel';
+import OrdersPanel from '../../components/admin/OrdersPanel';
 import './admin.css';
 
 const sections = [
   ['products', 'Manage Products'],
   ['list', 'Manage Product List'],
+  ['orders', 'Customer Orders'],
+  ['enquiries', 'Exit Enquiries'],
   ['access', 'Admin Access'],
   ['activity', 'Activity Log'],
 ];
@@ -56,6 +60,8 @@ export default function AdminPage() {
               <p>Signed in as {session.user?.email}. Product changes are saved to Cloud Firestore. Visitors see active products as they change. Image cells remain file paths; this page does not upload pictures.</p>
             </aside>
             {(section === 'products' || section === 'list') && <CatalogManager key={section} kind={section} actor={session.actor} />}
+            {section === 'orders' && <OrdersPanel actor={session.actor} />}
+            {section === 'enquiries' && <ExitEnquiriesPanel />}
             {session.main && section === 'access' && <AdminAccessPanel actor={session.actor} />}
             {section === 'activity' && <ActivityLogPanel />}
           </>

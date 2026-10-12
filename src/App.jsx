@@ -3,9 +3,11 @@ import { ArrowRight, Check, ChevronLeft, ChevronRight, Flame, HeartHandshake, Ho
 import { directionsUrl, whatsappUrl } from './data/business';
 import { heroBanners } from './data/heroBanners';
 import ImportantNotice from './components/ImportantNotice';
+import ExitEnquiry from './components/ExitEnquiry';
 import { money } from './lib/money';
 import { goSection, usePathname } from './lib/navigate';
 import { usePublicCatalog } from './lib/firestoreCatalog';
+import { orderStatusLabel, saveOrder, useCustomerOrder } from './lib/orders';
 import ProductListPage from './pages/ProductList';
 import { Analytics } from '@vercel/analytics/react';
 
@@ -23,17 +25,29 @@ function ProductModal({product,onClose,onAdd,onBuy}){const[quantity,setQuantity]
 function CartDrawer({open,onClose,cart,onUpdate,onClear}){
   const items=Object.values(cart),total=items.reduce((sum,item)=>sum+item.price*item.quantity,0);
   const [step,setStep]=useState('cart'),[name,setName]=useState(''),[phone,setPhone]=useState(''),[address,setAddress]=useState('');
-  const [errors,setErrors]=useState({}),[whatsappHref,setWhatsappHref]=useState(''),[whatsappReady,setWhatsappReady]=useState(false);
+  const [errors,setErrors]=useState({}),[whatsappHref,setWhatsappHref]=useState(''),[whatsappReady,setWhatsappReady]=useState(false),[saving,setSaving]=useState(false),[orderId,setOrderId]=useState('');
+  const order=useCustomerOrder(orderId);
   const backToCart=()=>{setStep('cart');setErrors({});setWhatsappReady(false);setWhatsappHref('')};
   const startEnquiry=()=>{setStep('details');setErrors({});setWhatsappReady(false);setWhatsappHref('')};
-  const submitEnquiry=event=>{
+  const submitEnquiry=async event=>{
     event.preventDefault();
+    if(saving)return;
     const cleanName=name.trim(),cleanPhone=phone.trim().replace(/[\s()-]/g,''),cleanAddress=address.trim();
     const nextErrors={};
     if(!cleanName)nextErrors.name='Please enter your full name.';
+    if(cleanName.length>120)nextErrors.name='Please enter a shorter name.';
     if(!/^(?:\+91)?[6-9]\d{9}$/.test(cleanPhone))nextErrors.phone='Please enter a valid 10-digit mobile number.';
     setErrors(nextErrors);
     if(Object.keys(nextErrors).length)return;
+    setSaving(true);
+    try {
+      setOrderId(await saveOrder({ customerName: cleanName, phone: cleanPhone, address: cleanAddress, source: 'products', items }));
+    } catch (error) {
+      setSaving(false);
+      setErrors({ form: error.message || 'The order could not be saved. Please try again.' });
+      return;
+    }
+    setSaving(false);
 
     const message=[
       'Hello Shri Harish Crackers,',
@@ -92,7 +106,9 @@ function CartDrawer({open,onClose,cart,onUpdate,onClear}){
       </div>
       <footer className="checkout-footer">
         {errors.form&&<p className="checkout-error" role="alert">{errors.form}</p>}
-        <button className="button primary" type="submit">Submit Enquiry <MessageCircle size={18}/></button>
+        <button className="button primary" type="submit" disabled={saving}>{saving?'Saving…':'Submit Enquiry'} <MessageCircle size={18}/></button>
+        {order.status&&<p className="checkout-ready" role="status">Order status: {orderStatusLabel(order.status)}</p>}
+        {order.error&&<p className="checkout-error" role="alert">{order.error}</p>}
         {whatsappReady&&<p className="checkout-ready" role="status">Your enquiry is ready to send on WhatsApp. Please review it there and press Send.</p>}
         {whatsappHref&&!whatsappReady&&<a className="checkout-whatsapp-link" href={whatsappHref} target="_blank" rel="noopener noreferrer">Open WhatsApp</a>}
       </footer>
@@ -145,6 +161,7 @@ export default function App(){
   return <>
     <Navbar count={count} bump={bump} onCart={()=>setCartOpen(true)}/>
     <ImportantNotice/>
+    <ExitEnquiry active={path==='/'}/>
     <main>{onProductList?<ProductListPage shopCartOpen={cartOpen} onCloseShopCart={()=>setCartOpen(false)}/>:<><Hero/><Offers products={visibleProducts} notice={catalogNotice} cart={cart} onOpen={setSelected} onAdd={add}/><About/><Contact/></>}</main>
     <Footer/>
     {!onProductList&&<ProductModal key={openProduct?.id||'product-modal'} product={openProduct} onClose={()=>setSelected(null)} onAdd={add} onBuy={buy}/>}
