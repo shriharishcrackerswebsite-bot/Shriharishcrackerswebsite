@@ -1,4 +1,4 @@
-import { copyFileSync, mkdirSync } from 'node:fs'
+import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
@@ -16,7 +16,17 @@ function clientRouteEntries() {
       for (const route of clientRoutes) {
         const directory = resolve(dist, route)
         mkdirSync(directory, { recursive: true })
-        copyFileSync(index, resolve(directory, 'index.html'))
+        const file = resolve(directory, 'index.html')
+        copyFileSync(index, file)
+        if (route === 'product-list') {
+          const description = 'Browse the Shri Harish Crackers product list in Valliyur, choose quantities, and send an enquiry for Diwali and festival crackers.'
+          const html = readFileSync(file, 'utf8')
+            .replace('<title>Shri Harish Crackers | Diwali Crackers in Valliyur</title>', '<title>Product List | Shri Harish Crackers, Valliyur</title>')
+            .replaceAll('content="Shri Harish Crackers in Valliyur, Tamil Nadu, offers Diwali and festival crackers for family celebrations. Send an enquiry and the shop confirms by WhatsApp or phone."', `content="${description}"`)
+            .replace('href="https://shriharishcrackers.com/"', 'href="https://shriharishcrackers.com/product-list"')
+            .replace('property="og:url" content="https://shriharishcrackers.com/"', 'property="og:url" content="https://shriharishcrackers.com/product-list"')
+          writeFileSync(file, html)
+        }
       }
     },
   }

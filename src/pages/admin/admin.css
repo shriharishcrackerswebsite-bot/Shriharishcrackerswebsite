@@ -95,7 +95,15 @@
 .admin-activity p { margin: 4px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
 .admin-activity ul { margin: 8px 0; padding-left: 18px; color: var(--purple); font-size: 13px; line-height: 1.5; }
 .admin-activity select { width: 100%; min-height: 44px; margin-top: 8px; padding: 0 12px; border: 1px solid #e5d8e5; border-radius: 9px; background: #fff; color: #30223d; font: inherit; font-weight: 700; }
-.admin-activity article > button { min-height: 40px; margin-top: 8px; padding: 0 12px; border: 1px solid var(--line); border-radius: 9px; background: #fff; color: var(--coral); font-weight: 800; }
+.admin-activity article > button, .order-details > button { min-height: 40px; margin-top: 8px; padding: 0 12px; border: 1px solid var(--line); border-radius: 9px; background: #fff; color: var(--coral); font-weight: 800; }
+.order-filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+.order-filters button { min-height: 40px; display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--purple); font-size: 13px; font-weight: 800; }
+.order-filters button.is-current { background: var(--purple); color: #fff; border-color: var(--purple); }
+.order-filters b { min-width: 1.4em; padding: 1px 6px; border-radius: 999px; background: rgba(36, 26, 69, .08); font-size: 12px; text-align: center; }
+.order-filters button.is-current b { background: rgba(255, 255, 255, .18); }
+.order-summary { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; align-items: center; }
+.order-summary button { min-height: 40px; margin: 0; padding: 0 12px; border: 1px solid var(--line); border-radius: 9px; background: #fff; color: var(--purple); font-weight: 800; }
+.order-details { margin-top: 10px; }
 
 @media (max-width: 800px) {
   .admin-shell { grid-template-columns: 1fr; }

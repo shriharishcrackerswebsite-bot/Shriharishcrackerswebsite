@@ -146,7 +146,7 @@ service cloud.firestore {
       allow create: if validOrder(request.resource.data);
       allow update: if isAdmin()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
-        && request.resource.data.status in ['received', 'confirmed', 'completed', 'cancelled']
+        && request.resource.data.status in ['received', 'confirmed', 'accepted', 'processing', 'dispatched', 'completed', 'cancelled', 'rejected']
         && request.resource.data.updatedAt == request.time;
       allow delete: if isAdmin();
     }

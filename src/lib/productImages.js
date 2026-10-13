@@ -1,10 +1,8 @@
-import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
-import app from './firebase.js';
-import { MAX_PRODUCT_IMAGES } from './catalog.js';
+import { MAX_INLINE_IMAGE_CHARS, MAX_PRODUCT_IMAGES } from './catalog.js';
 
-const storage = getStorage(app);
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+const MAX_EDGE = 640;
 
 export function imageFileError(file) {
   if (!TYPES.has(file?.type)) return `${file?.name || 'That file'} must be a JPEG, PNG, WebP, or GIF.`;
@@ -13,30 +11,74 @@ export function imageFileError(file) {
 }
 
 export function imageUploadError(error) {
-  const code = String(error?.code || '');
-  if (code.includes('unauthorized') || code.includes('permission-denied')) {
-    return 'Image upload was refused. Sign in as an administrator. Storage rules must allow that account to upload.';
-  }
-  if (code.includes('canceled')) return 'Image upload was cancelled.';
-  if (code.includes('retry-limit-exceeded') || code.includes('network')) {
-    return 'Image upload could not reach Firebase Storage. Check the connection and try again.';
-  }
-  return 'That image could not be uploaded, so the product was not saved.';
+  if (error?.message && !error.code) return error.message;
+  return 'That image could not be prepared, so the product was not saved.';
 }
 
-export function uploadProductImage(productId, file, onProgress) {
-  const safeId = String(productId || 'new').replace(/[^a-z0-9-]/gi, '').slice(0, 80) || 'new';
-  const extension = String(file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) || 'jpg';
-  const path = `products/${safeId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${extension}`;
-  const task = uploadBytesResumable(ref(storage, path), file, { contentType: file.type });
+function drawJpeg(source, edge, quality) {
+  const longest = Math.max(source.width, source.height) || 1;
+  const scale = Math.min(1, edge / longest);
+  const width = Math.max(1, Math.round(source.width * scale));
+  const height = Math.max(1, Math.round(source.height * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext('2d', { alpha: false });
+  context.fillStyle = '#ffffff';
+  context.fillRect(0, 0, width, height);
+  context.drawImage(source, 0, 0, width, height);
+  return canvas.toDataURL('image/jpeg', quality);
+}
+
+function loadImageElement(file) {
   return new Promise((resolve, reject) => {
-    task.on('state_changed', snapshot => {
-      const total = snapshot.totalBytes || file.size || 1;
-      onProgress?.(Math.round((snapshot.bytesTransferred / total) * 100));
-    }, reject, async () => {
-      resolve(await getDownloadURL(task.snapshot.ref));
-    });
+    const objectUrl = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => resolve({ source: image, close: () => URL.revokeObjectURL(objectUrl) });
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error(`${file.name} could not be read.`));
+    };
+    image.src = objectUrl;
   });
+}
+
+function loadImage(file) {
+  if (typeof createImageBitmap !== 'function') return loadImageElement(file);
+  return createImageBitmap(file)
+    .then(bitmap => ({ source: bitmap, close: () => bitmap.close?.() }))
+    .catch(() => loadImageElement(file));
+}
+
+async function compressProductImage(file) {
+  const loaded = await loadImage(file);
+  try {
+    let edge = MAX_EDGE;
+    let quality = 0.72;
+    let dataUrl = '';
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      dataUrl = drawJpeg(loaded.source, edge, quality);
+      if (dataUrl.length <= MAX_INLINE_IMAGE_CHARS) return dataUrl;
+      if (quality > 0.45) quality = Math.round((quality - 0.08) * 100) / 100;
+      else edge = Math.round(edge * 0.75);
+      if (edge < 180) break;
+    }
+    throw new Error(`${file.name} is still too large after resizing. Choose a smaller photo.`);
+  } finally {
+    loaded.close();
+  }
+}
+
+export async function prepareProductImage(file, onProgress) {
+  const problem = imageFileError(file);
+  if (problem) throw new Error(problem);
+  onProgress?.(20);
+  const dataUrl = await compressProductImage(file);
+  if (!dataUrl.startsWith('data:image/jpeg;base64,') || dataUrl.length > MAX_INLINE_IMAGE_CHARS) {
+    throw new Error(`${file.name} is still too large after resizing. Choose a smaller photo.`);
+  }
+  onProgress?.(100);
+  return dataUrl;
 }
 
 export function imageLimitMessage() {

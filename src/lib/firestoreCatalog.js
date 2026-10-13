@@ -61,6 +61,15 @@ function requireActor(actor) {
   return actor;
 }
 
+function activityImageValue(url) {
+  const value = String(url || '');
+  if (!value.startsWith('data:image/')) return value;
+  const kilobytes = Math.max(1, Math.round(value.length / 1024));
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 128) hash = (hash + value.charCodeAt(index)) % 1000000;
+  return `Saved photo (${kilobytes} KB #${hash})`;
+}
+
 function snapshotValue(kind, source) {
   if (!source) return null;
   const numeric = Number(source.price);
@@ -74,14 +83,15 @@ function snapshotValue(kind, source) {
   }
   const originalNumeric = Number(source.originalPrice);
   const original = Number.isFinite(originalNumeric) ? Math.round(originalNumeric) : null;
+  const gallery = productGallery(source);
   return {
     name: String(source.name || ''),
     price,
     originalPrice: original != null && price != null && original >= price ? original : null,
     description: String(source.description || ''),
     category: String(source.category || ''),
-    image: productGallery(source).image,
-    images: productGallery(source).images,
+    image: activityImageValue(gallery.image),
+    images: gallery.images.map(activityImageValue),
     badge: String(source.badge || ''),
     active: source.active !== false,
   };

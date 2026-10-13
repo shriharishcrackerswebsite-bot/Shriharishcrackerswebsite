@@ -2,6 +2,9 @@ import { sanitizeRichText } from './richText.js';
 
 export const PRODUCT_FIELDS = ['id', 'name', 'price', 'originalPrice', 'description', 'category', 'image', 'badge', 'active'];
 export const MAX_PRODUCT_IMAGES = 8;
+export const MAX_INLINE_IMAGE_CHARS = 100_000;
+const IMAGE_DOCUMENT_BUDGET = 900_000;
+const INLINE_JPEG_PREFIX = 'data:image/jpeg;base64,';
 export const LIST_FIELDS = ['id', 'name', 'price', 'active'];
 
 const ALIASES = {
@@ -78,9 +81,18 @@ export function parseActive(value) {
   return { ok: false, empty: false };
 }
 
+export function isInlineProductImage(value) {
+  const url = String(value || '').trim();
+  if (!url.startsWith(INLINE_JPEG_PREFIX) || url.length > MAX_INLINE_IMAGE_CHARS || /\s/.test(url)) return false;
+  const body = url.slice(INLINE_JPEG_PREFIX.length);
+  return body.length > 0 && body.length % 4 !== 1 && /^[A-Za-z0-9+/]+={0,2}$/.test(body);
+}
+
 export function isStoredImageUrl(value) {
   const url = String(value || '').trim();
-  if (!url || url.length > 2000 || /\s/.test(url)) return false;
+  if (!url || /\s/.test(url)) return false;
+  if (isInlineProductImage(url)) return true;
+  if (url.length > 2000) return false;
   if (url.startsWith('/')) return !url.startsWith('//') && !url.includes('..') && !url.includes('\\');
   try {
     const parsed = new URL(url);
@@ -88,6 +100,17 @@ export function isStoredImageUrl(value) {
   } catch {
     return false;
   }
+}
+
+export function productImageBudgetError(urls, primary) {
+  const list = (Array.isArray(urls) ? urls : []).map(url => String(url || '').trim()).filter(Boolean);
+  const chosen = String(primary || '').trim();
+  let bytes = list.reduce((sum, url) => sum + url.length, 0);
+  if (chosen && list.includes(chosen)) bytes += chosen.length;
+  if (bytes > IMAGE_DOCUMENT_BUDGET) {
+    return 'These photos are too large to save with the product. Remove one or choose a smaller image.';
+  }
+  return '';
 }
 
 export function productGallery(raw) {
@@ -422,6 +445,10 @@ export function validateProductForm(draft, items) {
   else if (images.length > MAX_PRODUCT_IMAGES) errors.images = `Use ${MAX_PRODUCT_IMAGES} images or fewer.`;
   else if (images.some(url => !isStoredImageUrl(url))) errors.images = 'Remove any image that does not have a valid address.';
   else if (draft.image && !images.includes(String(draft.image).trim())) errors.images = 'Choose the homepage image from the uploaded pictures.';
+  else {
+    const budget = productImageBudgetError(images, draft.image);
+    if (budget) errors.images = budget;
+  }
   return errors;
 }
 

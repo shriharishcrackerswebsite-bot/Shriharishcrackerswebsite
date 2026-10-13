@@ -2,18 +2,47 @@ import { useEffect, useState } from 'react';
 import { collection, doc, limit, onSnapshot, orderBy, query, serverTimestamp, setDoc, writeBatch } from 'firebase/firestore';
 import { db } from './firebase.js';
 import { firestoreErrorMessage, queueActivity } from './firestoreCatalog.js';
+import { orderEmailParams, sendOrderEmail } from './orderEmail.js';
 
-export const ORDER_STATUSES = ['received', 'confirmed', 'completed', 'cancelled'];
+export const ORDER_STATUSES = ['received', 'accepted', 'processing', 'dispatched', 'completed', 'cancelled'];
+
+export const ORDER_CATEGORIES = [
+  { id: 'all', label: 'All Orders' },
+  { id: 'received', label: 'New / Received' },
+  { id: 'accepted', label: 'Accepted' },
+  { id: 'processing', label: 'Processing' },
+  { id: 'dispatched', label: 'Dispatched' },
+  { id: 'completed', label: 'Completed' },
+  { id: 'cancelled', label: 'Rejected / Cancelled' },
+];
 
 const statusLabels = {
-  received: 'Received',
-  confirmed: 'Confirmed',
+  received: 'New / Received',
+  confirmed: 'Accepted',
+  accepted: 'Accepted',
+  processing: 'Processing',
+  dispatched: 'Dispatched',
   completed: 'Completed',
-  cancelled: 'Cancelled',
+  cancelled: 'Rejected / Cancelled',
+  rejected: 'Rejected / Cancelled',
 };
 
 export function orderStatusLabel(status) {
-  return statusLabels[status] || status;
+  return statusLabels[status] || status || 'New / Received';
+}
+
+export function orderCategory(status) {
+  if (status === 'confirmed' || status === 'accepted') return 'accepted';
+  if (status === 'processing') return 'processing';
+  if (status === 'dispatched') return 'dispatched';
+  if (status === 'completed') return 'completed';
+  if (status === 'cancelled' || status === 'rejected') return 'cancelled';
+  return 'received';
+}
+
+export function statusChoice(status) {
+  const category = orderCategory(status);
+  return ORDER_STATUSES.includes(category) ? category : 'received';
 }
 
 function orderItems(items) {
@@ -42,6 +71,16 @@ export async function saveOrder({ customerName, phone, address, source, items })
   }).catch(error => {
     throw new Error(firestoreErrorMessage(error), { cause: error });
   });
+  await sendOrderEmail(orderEmailParams({
+    id: ref.id,
+    customerName,
+    phone,
+    address: String(address || '').slice(0, 240),
+    items: lines,
+    total,
+    statusLabel: orderStatusLabel('received'),
+    placedAt: new Date(),
+  }));
   return ref.id;
 }
 

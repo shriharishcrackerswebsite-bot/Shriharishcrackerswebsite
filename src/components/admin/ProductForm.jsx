@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { categories } from '../../data/products';
 import { MAX_PRODUCT_IMAGES, productFromForm, productGallery, validateProductForm } from '../../lib/catalog';
-import { imageFileError, imageLimitMessage, imageUploadError, uploadProductImage } from '../../lib/productImages';
+import { imageFileError, imageLimitMessage, imageUploadError, prepareProductImage } from '../../lib/productImages';
 import DescriptionEditor from './DescriptionEditor';
 
 const emptyProduct = {
@@ -128,8 +128,8 @@ export default function ProductForm({ initial, items, onCancel, onSave }) {
           uploaded.push(image);
           continue;
         }
-        setStatus(`Uploading image ${index + 1} of ${images.length}…`);
-        const url = await uploadProductImage(draft.id || draft.name, image.file, progress => {
+        setStatus(`Preparing image ${index + 1} of ${images.length}…`);
+        const url = await prepareProductImage(image.file, progress => {
           setImages(current => current.map(item => (item.key === image.key ? { ...item, progress } : item)));
         });
         const saved = { ...image, url, preview: url, progress: 100, file: undefined };
@@ -147,7 +147,7 @@ export default function ProductForm({ initial, items, onCancel, onSave }) {
       setStatus(imageUploadError(error));
     } finally {
       setSaving(false);
-      setStatus(current => (current.startsWith('Uploading') ? '' : current));
+      setStatus(current => (current.startsWith('Preparing') ? '' : current));
     }
   };
 
@@ -185,7 +185,7 @@ export default function ProductForm({ initial, items, onCancel, onSave }) {
           Add images
           <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple disabled={saving || images.length >= MAX_PRODUCT_IMAGES} onChange={addFiles} />
         </label>
-        <small>Add up to {MAX_PRODUCT_IMAGES} JPEG, PNG, WebP, or GIF images, 5 MB each. Choose one as the homepage image.</small>
+        <small>Add up to {MAX_PRODUCT_IMAGES} JPEG, PNG, WebP, or GIF photos. New photos are resized and saved with the product. Existing image links stay unchanged. Choose one as the homepage image.</small>
         {errors.images && <span className="admin-error">{errors.images}</span>}
         {status && <span className="admin-error">{status}</span>}
         {images.length > 0 && (
@@ -195,7 +195,7 @@ export default function ProductForm({ initial, items, onCancel, onSave }) {
                 <img src={image.preview || image.url} alt="" />
                 <div>
                   <strong>{image.key === primaryKey ? 'Homepage image' : `Image ${index + 1}`}</strong>
-                  {image.file && image.progress < 100 && <small>Uploading {image.progress}%</small>}
+                  {image.file && image.progress < 100 && <small>Preparing {image.progress}%</small>}
                   <div className="admin-image-actions">
                     <button type="button" disabled={saving || image.key === primaryKey} onClick={() => setPrimaryKey(image.key)}>Use on homepage</button>
                     <button type="button" disabled={saving || index === 0} onClick={() => moveImage(image.key, -1)}>Earlier</button>
