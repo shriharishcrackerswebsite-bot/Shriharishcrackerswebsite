@@ -1,4 +1,7 @@
+import { sanitizeRichText } from './richText.js';
+
 export const PRODUCT_FIELDS = ['id', 'name', 'price', 'originalPrice', 'description', 'category', 'image', 'badge', 'active'];
+export const MAX_PRODUCT_IMAGES = 8;
 export const LIST_FIELDS = ['id', 'name', 'price', 'active'];
 
 const ALIASES = {
@@ -75,11 +78,41 @@ export function parseActive(value) {
   return { ok: false, empty: false };
 }
 
+export function isStoredImageUrl(value) {
+  const url = String(value || '').trim();
+  if (!url || url.length > 2000 || /\s/.test(url)) return false;
+  if (url.startsWith('/')) return !url.startsWith('//') && !url.includes('..') && !url.includes('\\');
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+  } catch {
+    return false;
+  }
+}
+
+export function productGallery(raw) {
+  const urls = [];
+  const add = value => {
+    const url = String(value || '').trim();
+    if (!isStoredImageUrl(url) || urls.includes(url)) return;
+    urls.push(url);
+  };
+  if (Array.isArray(raw?.images)) raw.images.forEach(add);
+  add(raw?.image);
+  if (!urls.length) urls.push('/image.png');
+  const requested = String(raw?.image || '').trim();
+  return {
+    image: urls.includes(requested) ? requested : urls[0],
+    images: urls.slice(0, MAX_PRODUCT_IMAGES),
+  };
+}
+
 export function normalizeProduct(raw) {
   const price = Math.round(Number(raw.price));
   const originalRaw = raw.originalPrice;
   const hasOriginal = originalRaw !== '' && originalRaw != null && Number.isFinite(Number(originalRaw));
   const originalPrice = hasOriginal ? Math.round(Number(originalRaw)) : null;
+  const gallery = productGallery(raw);
   return {
     highlights: [],
     theme: 'purple',
@@ -88,11 +121,12 @@ export function normalizeProduct(raw) {
     id: String(raw.id || stableId(raw.name)),
     name: String(raw.name || '').trim(),
     category: String(raw.category || '').trim(),
-    image: String(raw.image || '/image.png').trim() || '/image.png',
+    image: gallery.image,
+    images: gallery.images,
     price,
     originalPrice,
     discount: discountFor(price, originalPrice),
-    description: String(raw.description || '').trim(),
+    description: sanitizeRichText(String(raw.description || '').trim()),
     badge: String(raw.badge || '').trim(),
     active: raw.active !== false && String(raw.active).toLowerCase() !== 'false',
   };
@@ -383,7 +417,11 @@ export function validateProductForm(draft, items) {
     else if (price.ok && original.value < price.value) errors.originalPrice = 'Original price cannot be less than the selling price.';
   }
 
-  if (!String(draft.image || '').trim()) errors.image = 'Enter an image path, such as /image.png.';
+  const images = Array.isArray(draft.images) ? draft.images.map(url => String(url || '').trim()).filter(Boolean) : [];
+  if (!images.length) errors.images = 'Add at least one product image.';
+  else if (images.length > MAX_PRODUCT_IMAGES) errors.images = `Use ${MAX_PRODUCT_IMAGES} images or fewer.`;
+  else if (images.some(url => !isStoredImageUrl(url))) errors.images = 'Remove any image that does not have a valid address.';
+  else if (draft.image && !images.includes(String(draft.image).trim())) errors.images = 'Choose the homepage image from the uploaded pictures.';
   return errors;
 }
 
@@ -396,9 +434,10 @@ export function productFromForm(draft, items) {
     name: String(draft.name).trim(),
     price: parsePrice(draft.price).value,
     originalPrice: originalText ? parsePrice(originalText).value : null,
-    description: String(draft.description || '').trim(),
+    description: sanitizeRichText(String(draft.description || '').trim()),
     category: String(draft.category || '').trim(),
-    image: String(draft.image).trim(),
+    image: String(draft.image || '').trim(),
+    images: Array.isArray(draft.images) ? draft.images : [],
     badge: String(draft.badge || '').trim(),
     active: Boolean(draft.active),
   });

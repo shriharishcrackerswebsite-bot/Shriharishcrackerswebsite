@@ -23,6 +23,7 @@ export function describeChange(oldValue, newValue) {
     if (value == null || value === '') return '—';
     if (typeof value === 'boolean') return value ? 'visible' : 'hidden';
     if (typeof value === 'number') return `₹${value}`;
+    if (Array.isArray(value)) return value.join(', ') || '—';
     return String(value);
   };
   const summarize = value => [value?.name || value?.email, value?.price != null ? `₹${value.price}` : ''].filter(Boolean).join(' · ') || 'record';
@@ -35,6 +36,7 @@ export function describeChange(oldValue, newValue) {
     active: 'Visibility',
     category: 'Category',
     image: 'Image',
+    images: 'Images',
     badge: 'Badge',
     description: 'Description',
     email: 'Email',
@@ -42,7 +44,8 @@ export function describeChange(oldValue, newValue) {
     displayOrder: 'Display order',
     listDisplayOrder: 'List order',
   };
-  const changes = Object.keys(labels).filter(key => (oldValue?.[key] ?? null) !== (newValue?.[key] ?? null));
+  const changed = key => JSON.stringify(oldValue?.[key] ?? null) !== JSON.stringify(newValue?.[key] ?? null);
+  const changes = Object.keys(labels).filter(changed);
   if (!changes.length) return 'No field changes';
   return changes.map(key => `${labels[key]}: ${show(oldValue?.[key])} → ${show(newValue?.[key])}`).join('; ');
 }

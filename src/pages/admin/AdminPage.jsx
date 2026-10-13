@@ -19,9 +19,6 @@ const sections = [
   ['activity', 'Activity Log'],
 ];
 
-// Customer Orders stays implemented. Remove 'orders' from this set to show it again.
-const hiddenSections = new Set(['orders']);
-
 export default function AdminPage() {
   const session = useAdminSession();
   const [section, setSection] = useState('products');
@@ -39,7 +36,7 @@ export default function AdminPage() {
         <p className="admin-sidebar__eyebrow">Shri Harish Crackers</p>
         <strong>Catalog admin</strong>
         <nav aria-label="Admin sections">
-          {sections.filter(([id]) => !hiddenSections.has(id) && (id !== 'access' || session.main)).map(([id, label]) => (
+          {sections.filter(([id]) => id !== 'access' || session.main).map(([id, label]) => (
             <button key={id} type="button" className={section === id ? 'is-current' : ''} aria-current={section === id ? 'page' : undefined} onClick={() => choose(id)} disabled={!session.admin}>{label}</button>
           ))}
         </nav>

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://shriharishcracker.web.app/sitemap.xml
+Sitemap: https://shriharishcrackers.com/sitemap.xml

@@ -27,6 +27,21 @@
 .card-actions button.view-details { border: 0; background: transparent; color: inherit; padding: 8px 2px; font-size: inherit; font-weight: 800; }
 .card-actions button.view-details:hover { background: transparent; color: var(--magenta); }
 .modal-description { white-space: pre-line; }
+.modal-description.is-rich { white-space: normal; }
+.modal-description.is-rich p { margin: 0 0 .65em; }
+.modal-description.is-rich p:last-child { margin-bottom: 0; }
+.modal-description.is-rich h3 { margin: 0 0 .4em; color: var(--purple); font-size: 1.05em; line-height: 1.25; }
+.modal-description.is-rich ul, .modal-description.is-rich ol { margin: 0 0 .65em; padding-left: 1.2em; display: block; }
+.modal-description.is-rich ul { list-style: disc; }
+.modal-description.is-rich ol { list-style: decimal; }
+.modal-description.is-rich li { display: list-item; gap: 0; color: inherit; font-size: inherit; }
+.modal-description.is-rich a { color: var(--magenta); }
+.modal-gallery { position: absolute; z-index: 3; left: 10px; right: 10px; bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.modal-gallery > button { flex: 0 0 auto; width: 32px; height: 32px; display: grid; place-items: center; border: 0; border-radius: 8px; background: rgba(36, 26, 69, .82); color: #fff; }
+.modal-thumbs { display: flex; gap: 6px; min-width: 0; overflow-x: auto; }
+.modal-thumbs button { flex: 0 0 auto; width: 46px; height: 46px; padding: 0; border: 2px solid transparent; border-radius: 8px; background: #fff; overflow: hidden; }
+.modal-thumbs button.is-current { border-color: var(--orange); }
+.modal-thumbs img { width: 46px !important; height: 46px !important; object-fit: cover; mix-blend-mode: normal; }
 .modal-actions .buy-now { border: 1px solid rgba(56,35,95,.25); background: #fff; color: var(--purple); }
 .desktop-nav a { border: 0; background: none; color: #f4edf5; font-size: 14px; text-decoration: none; white-space: nowrap; cursor: pointer; }
 .desktop-nav a:hover, .desktop-nav a[aria-current="page"] { color: #ffad78; }

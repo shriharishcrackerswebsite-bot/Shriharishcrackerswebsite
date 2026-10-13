@@ -36,6 +36,25 @@
 .admin-error { margin: 8px 0; color: #a8324e; font-size: 13px; font-weight: 700; }
 .admin-success { margin: 0 0 14px; padding: 12px 14px; border-radius: 10px; background: #fff; color: var(--magenta); font-size: 14px; font-weight: 800; }
 .admin-preview { width: 72px; height: 72px; object-fit: contain; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+.admin-file { position: relative; display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border: 1px solid var(--line); border-radius: 9px; background: #fff; color: var(--purple); font-size: 13px; overflow: hidden; }
+.admin-file input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.admin-file input:disabled { cursor: not-allowed; }
+.admin-images { display: grid; gap: 8px; margin: 8px 0 0; padding: 0; list-style: none; }
+.admin-images li { display: flex; gap: 10px; align-items: center; padding: 8px; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+.admin-images li.is-primary { border-color: var(--orange); }
+.admin-images img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; background: #f6edf5; }
+.admin-images strong, .admin-images small { display: block; }
+.admin-images strong { color: var(--purple); font-size: 13px; }
+.admin-image-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.admin-image-actions button { min-height: 32px; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--purple); font-size: 12px; font-weight: 800; }
+.admin-image-actions button:disabled { opacity: .45; }
+.description-editor { display: grid; gap: 6px; }
+.description-editor__tools { display: flex; flex-wrap: wrap; gap: 6px; }
+.description-editor__tools button { min-height: 32px; padding: 0 8px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--purple); font-size: 12px; font-weight: 800; }
+.description-editor__body { min-height: 140px; padding: 12px; border: 1px solid #e5d8e5; border-radius: 9px; background: #fff; color: #30223d; font-size: 16px; font-weight: 500; line-height: 1.5; }
+.description-editor__body:focus { outline: 3px solid var(--orange); outline-offset: 2px; }
+.description-editor__body p { margin: 0 0 .5em; }
+.description-editor__body ul, .description-editor__body ol { margin: 0 0 .5em; padding-left: 1.2em; }
 .admin-list { display: grid; gap: 8px; }
 .admin-list__head, .admin-list__row { display: grid; gap: 12px; align-items: center; }
 .admin-list--products .admin-list__head, .admin-list--products .admin-list__row { grid-template-columns: 52px minmax(0, 1.6fr) .8fr .9fr .7fr auto; }

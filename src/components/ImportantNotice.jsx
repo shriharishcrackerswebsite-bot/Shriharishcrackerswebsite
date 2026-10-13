@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { TriangleAlert } from 'lucide-react';
-import { hasAcceptedNotice, NOTICE_STORAGE_KEY } from '../lib/exitEnquiry';
+import { NOTICE_STORAGE_KEY } from '../lib/exitEnquiry';
 import './ImportantNotice.css';
 
 const LAUNCH_COLORS = ['#ff944e', '#ffd15c', '#ef6c91', '#f05b69', '#7cf0c4', '#8ec5ff', '#fff'];
@@ -43,10 +43,18 @@ function LaunchAnimation() {
 }
 
 export default function ImportantNotice() {
-  const [open, setOpen] = useState(() => !hasAcceptedNotice());
+  const [open, setOpen] = useState(false);
   const [launching, setLaunching] = useState(false);
   const dialogRef = useRef(null);
   const headingRef = useRef(null);
+  const acceptedRef = useRef(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      if (!acceptedRef.current) setOpen(true);
+    }, 5000);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -73,6 +81,7 @@ export default function ImportantNotice() {
   }, [launching]);
 
   const acceptNotice = () => {
+    acceptedRef.current = true;
     try {
       window.localStorage.setItem(NOTICE_STORAGE_KEY, 'true');
     } catch (error) {

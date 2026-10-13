@@ -12,7 +12,7 @@ import {
 } from 'firebase/firestore';
 import { GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
 import { auth, db } from './firebase.js';
-import { normalizeListItem, normalizeProduct } from './catalog.js';
+import { normalizeListItem, normalizeProduct, productGallery } from './catalog.js';
 import { compareCatalog, orderField, planCreateOrder, planDeleteOrder, planImportOrders, planMove } from './catalogOrder.js';
 import { actorFromUser, ADMIN_EMAIL, isMainAdmin, normalizeAdminEmail } from './adminIdentity.js';
 
@@ -80,7 +80,8 @@ function snapshotValue(kind, source) {
     originalPrice: original != null && price != null && original >= price ? original : null,
     description: String(source.description || ''),
     category: String(source.category || ''),
-    image: String(source.image || ''),
+    image: productGallery(source).image,
+    images: productGallery(source).images,
     badge: String(source.badge || ''),
     active: source.active !== false,
   };
@@ -142,7 +143,8 @@ function productData(item, creating) {
     originalPrice: original != null && original >= price ? original : null,
     description: item.description || '',
     category: item.category || '',
-    image: item.image || '/image.png',
+    image: productGallery(item).image,
+    images: productGallery(item).images,
     badge: item.badge || '',
     active: item.active !== false,
     discount: item.discount || 0,

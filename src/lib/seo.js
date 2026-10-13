@@ -1,4 +1,4 @@
-export const SITE_ORIGIN = 'https://shriharishcracker.web.app';
+export const SITE_ORIGIN = 'https://shriharishcrackers.com';
 
 const pages = {
   '/': {
