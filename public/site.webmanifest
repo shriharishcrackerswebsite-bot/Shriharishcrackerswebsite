@@ -1,0 +1,17 @@
+{
+  "name": "Shri Harish Crackers",
+  "short_name": "Shri Harish",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fff8f5",
+  "theme_color": "#241a45",
+  "icons": [
+    {
+      "src": "/image.png",
+      "sizes": "1280x1280",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

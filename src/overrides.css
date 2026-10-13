@@ -28,11 +28,16 @@
 .card-actions button.view-details:hover { background: transparent; color: var(--magenta); }
 .modal-description { white-space: pre-line; }
 .modal-actions .buy-now { border: 1px solid rgba(56,35,95,.25); background: #fff; color: var(--purple); }
+.desktop-nav a { border: 0; background: none; color: #f4edf5; font-size: 14px; text-decoration: none; white-space: nowrap; cursor: pointer; }
+.desktop-nav a:hover, .desktop-nav a[aria-current="page"] { color: #ffad78; }
+.mobile-menu a { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border: 0; border-bottom: 1px solid var(--line); background: none; color: #fff; text-decoration: none; }
+.mobile-menu a[aria-current="page"] { color: #ffad78; }
 .bottom-nav { padding-bottom: max(7px, env(safe-area-inset-bottom)); }
-.bottom-nav button { min-height: 49px; align-content: center; width: auto; flex: 1 1 0; min-width: 0; }
-.bottom-nav button:first-child { color: var(--orange); }
-.bottom-nav.has-current button:first-child:not(.is-current) { color: #c6b9cc; }
-.bottom-nav button.is-current { color: #ffad78; }
+.bottom-nav button, .bottom-nav a { min-height: 49px; align-content: center; width: auto; flex: 1 1 0; min-width: 0; display: grid; gap: 3px; justify-items: center; border: 0; background: none; color: #c6b9cc; font-size: 9px; text-decoration: none; cursor: pointer; }
+.bottom-nav button:first-child, .bottom-nav a:first-child { color: var(--orange); }
+.bottom-nav.has-current button:first-child:not(.is-current), .bottom-nav.has-current a:first-child:not(.is-current) { color: #c6b9cc; }
+.bottom-nav button.is-current, .bottom-nav a.is-current { color: #ffad78; }
+.bottom-nav a > span, .bottom-nav button > span { height: 21px; position: relative; }
 .desktop-nav button { white-space: nowrap; }
 .desktop-nav button[aria-current="page"], .mobile-menu button[aria-current="page"] { color: #ffad78; }
 .catalog-empty { position: relative; z-index: 1; margin: 0; color: var(--muted); }
@@ -69,7 +74,7 @@
 @media (max-width: 980px) and (min-width: 661px) {
   .nav-shell { padding: 0 14px; gap: 10px; }
   .desktop-nav { gap: 12px; }
-  .desktop-nav button { font-size: 13px; }
+  .desktop-nav button, .desktop-nav a { font-size: 13px; }
 }
 .float-contacts { position: fixed; z-index: 35; right: 25px; bottom: 28px; display: flex; flex-direction: column; gap: 10px; }
 .float-contacts a { width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; color: #fff; text-decoration: none; box-shadow: 0 8px 18px rgba(36, 26, 69, .22); transition: transform .2s ease, box-shadow .2s ease; }
@@ -85,7 +90,7 @@
 }
 @media (max-width: 660px) {
   .mobile-menu.is-open { max-height: 340px; }
-  .bottom-nav button { font-size: 8px; padding: 0 1px; }
+  .bottom-nav button, .bottom-nav a { font-size: 8px; padding: 0 1px; }
   .card-actions { align-items: center; }
   .card-actions button { font-size: 9px; }
   .card-actions button.view-details { font-size: 8px; padding: 7px 2px; }

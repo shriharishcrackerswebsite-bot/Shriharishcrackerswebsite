@@ -4,15 +4,26 @@
   },
   "hosting": {
     "public": "dist",
+    "trailingSlash": false,
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
     ],
     "rewrites": [
+      { "source": "/admin", "destination": "/index.html" },
+      { "source": "/admin/**", "destination": "/index.html" },
+      { "source": "/product-list", "destination": "/index.html" },
+      { "source": "/product-list/**", "destination": "/index.html" }
+    ],
+    "headers": [
       {
-        "source": "**",
-        "destination": "/index.html"
+        "source": "/admin",
+        "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+      },
+      {
+        "source": "/admin/**",
+        "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
       }
     ]
   }
