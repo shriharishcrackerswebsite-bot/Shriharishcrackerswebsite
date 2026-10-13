@@ -28,13 +28,14 @@ function ProductModal({product,onClose,onAdd,onBuy}){const[quantity,setQuantity]
 function CartDrawer({open,onClose,cart,onUpdate,onClear}){
   const items=Object.values(cart),total=items.reduce((sum,item)=>sum+item.price*item.quantity,0);
   const [step,setStep]=useState('cart'),[name,setName]=useState(''),[phone,setPhone]=useState(''),[address,setAddress]=useState('');
-  const [errors,setErrors]=useState({}),[whatsappHref,setWhatsappHref]=useState(''),[saving,setSaving]=useState(false),[orderId,setOrderId]=useState('');
+  const [errors,setErrors]=useState({}),[whatsappHref,setWhatsappHref]=useState(''),[saving,setSaving]=useState(false),[saved,setSaved]=useState(false),[orderId,setOrderId]=useState('');
   const order=useCustomerOrder(orderId);
-  const backToCart=()=>{setStep('cart');setErrors({});setWhatsappHref('')};
-  const startEnquiry=()=>{setStep('details');setErrors({});setWhatsappHref('')};
-  const submitEnquiry=async event=>{
+  const submitGate=useRef({ busy: false, done: false });
+  const backToCart=()=>{setStep('cart');setErrors({});setWhatsappHref('');setSaved(false);if(!submitGate.current.busy)submitGate.current.done=false};
+  const startEnquiry=()=>{setStep('details');setErrors({});setWhatsappHref('');setSaved(false)};
+  const submitEnquiry=event=>{
     event.preventDefault();
-    if(saving)return;
+    if(submitGate.current.busy||submitGate.current.done)return;
     const cleanName=name.trim(),cleanPhone=phone.trim().replace(/[\s()-]/g,''),cleanAddress=address.trim();
     const nextErrors={};
     if(!cleanName)nextErrors.name='Please enter your full name.';
@@ -42,16 +43,6 @@ function CartDrawer({open,onClose,cart,onUpdate,onClear}){
     if(!/^(?:\+91)?[6-9]\d{9}$/.test(cleanPhone))nextErrors.phone='Please enter a valid 10-digit mobile number.';
     setErrors(nextErrors);
     if(Object.keys(nextErrors).length)return;
-    setSaving(true);
-    try {
-      setOrderId(await saveOrder({ customerName: cleanName, phone: cleanPhone, address: cleanAddress, source: 'products', items }));
-    } catch (error) {
-      setSaving(false);
-      setErrors({ form: error.message || 'The order could not be saved. Please try again.' });
-      return;
-    }
-    setSaving(false);
-
     const message=[
       'Hello Shri Harish Crackers,',
       '',
@@ -74,8 +65,24 @@ function CartDrawer({open,onClose,cart,onUpdate,onClear}){
       '',
       'Thank you.',
     ].join('\n');
-    setWhatsappHref(whatsappUrl(message));
+    const href=whatsappUrl(message);
+    const whatsappWindow=window.open(href,'_blank');
+    if(whatsappWindow)whatsappWindow.opener=null;
+    submitGate.current.busy=true;
+    setWhatsappHref(href);
+    setSaving(true);
     setErrors({});
+    saveOrder({ customerName: cleanName, phone: cleanPhone, address: cleanAddress, source: 'products', items }).then(id=>{
+      submitGate.current.busy=false;
+      submitGate.current.done=true;
+      setOrderId(id);
+      setSaved(true);
+      setSaving(false);
+    }).catch(error=>{
+      submitGate.current.busy=false;
+      setSaving(false);
+      setErrors({ form: error.message || 'The order could not be saved. Please try again.' });
+    });
   };
   return <div className={`cart-layer ${open?'is-open':''}`} aria-hidden={!open}><div className="cart-backdrop" onClick={onClose}/><aside className={`cart-drawer ${step==='details'?'is-checkout':''}`} aria-label={step==='details'?'Complete your enquiry':'Shopping cart'}>
     <header>{step==='details'?<><button className="checkout-back" type="button" onClick={backToCart}><ChevronLeft size={19}/>Back to Cart</button><button onClick={onClose} aria-label="Close enquiry form"><X/></button></>:<><div><p>Your shopping cart</p><h2>Cart</h2></div><button onClick={onClose} aria-label="Close cart"><X/></button></>}</header>
@@ -101,10 +108,10 @@ function CartDrawer({open,onClose,cart,onUpdate,onClear}){
       </div>
       <footer className="checkout-footer">
         {errors.form&&<p className="checkout-error" role="alert">{errors.form}</p>}
-        <button className="button primary" type="submit" disabled={saving||Boolean(whatsappHref)}>{saving?'Saving…':whatsappHref?'Enquiry saved':'Submit Enquiry'} <MessageCircle size={18}/></button>
+        <button className="button primary" type="submit" disabled={saving||saved}>{saving?'Saving…':saved?'Enquiry saved':'Submit Enquiry'} <MessageCircle size={18}/></button>
         {order.status&&<p className="checkout-ready" role="status">Order status: {orderStatusLabel(order.status)}</p>}
         {order.error&&<p className="checkout-error" role="alert">{order.error}</p>}
-        {whatsappHref&&<p className="checkout-ready" role="status">Enquiry saved. Open WhatsApp to review the message and press Send.</p>}
+        {whatsappHref&&<p className="checkout-ready" role="status">{saved?'Enquiry saved. Open WhatsApp to review the message and press Send.':'WhatsApp is opening. Review the message and press Send.'}</p>}
         {whatsappHref&&<a className="checkout-whatsapp-link" href={whatsappHref} target="_blank" rel="noopener noreferrer">Open WhatsApp</a>}
       </footer>
     </form>:<><div className="cart-items">{items.map(item=><div className="cart-item" key={item.id}><img src={item.image} alt=""/><div><h3>{item.name}</h3><p>{money.format(item.price)}</p><div className="stepper"><button onClick={()=>onUpdate(item.id,item.quantity-1)} aria-label={`Remove one ${item.name}`}><Minus size={14}/></button><output>{item.quantity}</output><button onClick={()=>onUpdate(item.id,item.quantity+1)} aria-label={`Add one ${item.name}`}><Plus size={14}/></button></div></div><button className="remove" onClick={()=>onUpdate(item.id,0)} aria-label={`Remove ${item.name}`}><Trash2 size={17}/></button></div>)}</div><footer><div><span>Total</span><strong>{money.format(total)}</strong></div><button className="button primary" onClick={startEnquiry}>Proceed to Checkout <ArrowRight size={18}/></button><button className="continue" onClick={onClose}>Continue Shopping</button><button className="clear" onClick={()=>{onClear();backToCart()}}>Clear cart</button></footer></>):<div className="empty-cart"><ShoppingBag size={35}/><h3>Your cart is waiting</h3><p>Add a few favourites to prepare your enquiry.</p><button className="button ghost" onClick={onClose}>Continue Shopping</button></div>}
