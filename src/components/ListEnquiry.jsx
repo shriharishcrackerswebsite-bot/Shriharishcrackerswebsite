@@ -11,7 +11,6 @@ export default function ListEnquiry({ open, step, items, onClose, onStep, onQuan
   const [address, setAddress] = useState('');
   const [errors, setErrors] = useState({});
   const [whatsappHref, setWhatsappHref] = useState('');
-  const [whatsappReady, setWhatsappReady] = useState(false);
   const [saving, setSaving] = useState(false);
   const [orderId, setOrderId] = useState('');
   const order = useCustomerOrder(orderId);
@@ -45,15 +44,7 @@ export default function ListEnquiry({ open, step, items, onClose, onStep, onQuan
     setSaving(false);
 
     const { message } = buildProductListEnquiry({ name: cleanName, phone, address, items });
-    const href = whatsappUrl(message);
-    setWhatsappHref(href);
-    const whatsappWindow = window.open(href, '_blank');
-    if (!whatsappWindow) {
-      setErrors({ form: 'WhatsApp could not be opened. Please allow pop-ups or use the link below.' });
-      return;
-    }
-    whatsappWindow.opener = null;
-    setWhatsappReady(true);
+    setWhatsappHref(whatsappUrl(message));
     setErrors({});
   };
 
@@ -133,11 +124,11 @@ export default function ListEnquiry({ open, step, items, onClose, onStep, onQuan
             </div>
             <footer className="checkout-footer">
               {errors.form && <p className="checkout-error" role="alert">{errors.form}</p>}
-              <button className="button primary" type="submit" disabled={saving}>{saving ? 'Saving…' : 'Submit Enquiry'} <MessageCircle size={18} /></button>
+              <button className="button primary" type="submit" disabled={saving || Boolean(whatsappHref)}>{saving ? 'Saving…' : whatsappHref ? 'Enquiry saved' : 'Submit Enquiry'} <MessageCircle size={18} /></button>
               {order.status && <p className="checkout-ready" role="status">Order status: {orderStatusLabel(order.status)}</p>}
               {order.error && <p className="checkout-error" role="alert">{order.error}</p>}
-              {whatsappReady && <p className="checkout-ready" role="status">Your enquiry is ready to send on WhatsApp. Please review it there and press Send.</p>}
-              {whatsappHref && !whatsappReady && <a className="checkout-whatsapp-link" href={whatsappHref} target="_blank" rel="noopener noreferrer">Open WhatsApp</a>}
+              {whatsappHref && <p className="checkout-ready" role="status">Enquiry saved. Open WhatsApp to review the message and press Send.</p>}
+              {whatsappHref && <a className="checkout-whatsapp-link" href={whatsappHref} target="_blank" rel="noopener noreferrer">Open WhatsApp</a>}
             </footer>
           </form>
         )}

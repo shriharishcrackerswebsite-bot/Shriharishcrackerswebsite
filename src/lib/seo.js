@@ -2,13 +2,13 @@ export const SITE_ORIGIN = 'https://shriharishcrackers.com';
 
 const pages = {
   '/': {
-    title: 'Shri Harish Crackers | Diwali Crackers in Valliyur',
-    description: 'Shri Harish Crackers in Valliyur, Tamil Nadu, offers Diwali and festival crackers for family celebrations. Send an enquiry and the shop confirms by WhatsApp or phone.',
+    title: 'Shri Harish Crackers Valliyur | Crackers Shop in Valliyur',
+    description: 'Shri Harish Crackers is a crackers shop in Valliyur, Tamil Nadu, on Eruvadi Main Road near Rotary Club. Enquire about Diwali crackers and fireworks in Valliyur, also known as Valiyoor, by phone or WhatsApp.',
     robots: 'index, follow',
   },
   '/product-list': {
     title: 'Product List | Shri Harish Crackers, Valliyur',
-    description: 'Browse the Shri Harish Crackers product list in Valliyur, choose quantities, and send an enquiry for Diwali and festival crackers.',
+    description: 'Browse the Shri Harish Crackers product list in Valliyur, choose quantities, and send an enquiry for Diwali crackers and fireworks.',
     robots: 'index, follow',
   },
   '/admin': {
@@ -40,12 +40,12 @@ export function applyPageMeta(path) {
   document.title = page.title;
   setContent('name', 'description', page.description);
   setContent('name', 'robots', page.robots);
-  setContent('property', 'og:title', path === '/admin' ? page.title : 'Shri Harish Crackers');
+  setContent('property', 'og:title', page.title);
   setContent('property', 'og:description', page.description);
   setContent('property', 'og:url', url);
   setContent('property', 'og:image', image);
   setContent('property', 'og:image:secure_url', image);
-  setContent('name', 'twitter:title', path === '/admin' ? page.title : 'Shri Harish Crackers');
+  setContent('name', 'twitter:title', page.title);
   setContent('name', 'twitter:description', page.description);
   setContent('name', 'twitter:image', image);
   let canonical = document.head.querySelector('link[rel="canonical"]');

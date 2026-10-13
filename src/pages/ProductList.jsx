@@ -47,7 +47,7 @@ export default function ProductListPage({ shopCartOpen, onCloseShopCart }) {
     <section className="plist">
       <header className="plist-intro">
         <h1>Product List</h1>
-        <p>Browse our product list, select quantities, and send your enquiry.</p>
+        <p>Browse the Shri Harish Crackers product list in Valliyur, choose quantities, and send an enquiry.</p>
       </header>
 
       <div className="plist-toolbar">
