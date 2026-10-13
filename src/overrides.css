@@ -24,6 +24,9 @@
 .continue:hover { color: var(--magenta); }
 .clear { padding-top: 4px !important; }
 .card-actions button { min-height: 36px; white-space: nowrap; }
+.card-actions button.view-details { border: 0; background: transparent; color: inherit; padding: 8px 2px; font-size: inherit; font-weight: 800; }
+.card-actions button.view-details:hover { background: transparent; color: var(--magenta); }
+.modal-description { white-space: pre-line; }
 .modal-actions .buy-now { border: 1px solid rgba(56,35,95,.25); background: #fff; color: var(--purple); }
 .bottom-nav { padding-bottom: max(7px, env(safe-area-inset-bottom)); }
 .bottom-nav button { min-height: 49px; align-content: center; width: auto; flex: 1 1 0; min-width: 0; }
@@ -85,6 +88,7 @@
   .bottom-nav button { font-size: 8px; padding: 0 1px; }
   .card-actions { align-items: center; }
   .card-actions button { font-size: 9px; }
+  .card-actions button.view-details { font-size: 8px; padding: 7px 2px; }
   .cart-trigger { min-height: 38px; }
   .checkout-scroll { padding: 17px 18px 12px; }
   .checkout-title { font-size: 23px; }
