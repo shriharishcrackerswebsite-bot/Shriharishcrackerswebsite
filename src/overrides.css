@@ -42,6 +42,13 @@
 .modal-thumbs button { flex: 0 0 auto; width: 46px; height: 46px; padding: 0; border: 2px solid transparent; border-radius: 8px; background: #fff; overflow: hidden; }
 .modal-thumbs button.is-current { border-color: var(--orange); }
 .modal-thumbs img { width: 46px !important; height: 46px !important; object-fit: cover; mix-blend-mode: normal; }
+.modal-media { min-width: 0; }
+.product-video { background: #120c22; }
+.product-video video, .product-video iframe { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; background: #000; }
+.modal-thumbs a.is-instagram { position: relative; flex: 0 0 auto; width: 46px; height: 46px; border: 2px solid transparent; border-radius: 8px; overflow: hidden; }
+.modal-thumbs a.is-instagram i { position: absolute; right: 2px; bottom: 2px; width: 16px; height: 16px; display: grid; place-items: center; border-radius: 4px; background: rgba(18, 12, 34, .78); color: #fff; }
+.modal-thumbs a.is-instagram svg { width: 12px; height: 12px; }
+.instagram-fallback { width: 46px; height: 46px; display: grid; place-items: center; background: linear-gradient(135deg, #f9ce34 0%, #ee2a7b 52%, #6228d7 100%); color: #fff; font-size: 8px; font-weight: 800; letter-spacing: .02em; }
 .modal-actions .buy-now { border: 1px solid rgba(56,35,95,.25); background: #fff; color: var(--purple); }
 .desktop-nav a { border: 0; background: none; color: #f4edf5; font-size: 14px; text-decoration: none; white-space: nowrap; cursor: pointer; }
 .desktop-nav a:hover, .desktop-nav a[aria-current="page"] { color: #ffad78; }

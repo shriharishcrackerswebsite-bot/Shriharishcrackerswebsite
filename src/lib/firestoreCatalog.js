@@ -93,6 +93,9 @@ function snapshotValue(kind, source) {
     image: activityImageValue(gallery.image),
     images: gallery.images.map(activityImageValue),
     badge: String(source.badge || ''),
+    productVideoUrl: String(source.productVideoUrl || ''),
+    instagramVideoUrl: String(source.instagramVideoUrl || ''),
+    instagramThumbnailUrl: String(source.instagramThumbnailUrl || ''),
     active: source.active !== false,
   };
 }
@@ -156,6 +159,9 @@ function productData(item, creating) {
     image: productGallery(item).image,
     images: productGallery(item).images,
     badge: item.badge || '',
+    productVideoUrl: String(item.productVideoUrl || '').trim(),
+    instagramVideoUrl: String(item.instagramVideoUrl || '').trim(),
+    instagramThumbnailUrl: String(item.instagramThumbnailUrl || '').trim(),
     active: item.active !== false,
     discount: item.discount || 0,
     highlights: Array.isArray(item.highlights) ? item.highlights : [],

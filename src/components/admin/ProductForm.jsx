@@ -12,6 +12,9 @@ const emptyProduct = {
   description: '',
   category: '',
   badge: '',
+  productVideoUrl: '',
+  instagramVideoUrl: '',
+  instagramThumbnailUrl: '',
   active: true,
 };
 
@@ -35,6 +38,9 @@ export default function ProductForm({ initial, items, onCancel, onSave }) {
     description: initial.description || '',
     category: initial.category || '',
     badge: initial.badge || '',
+    productVideoUrl: initial.productVideoUrl || '',
+    instagramVideoUrl: initial.instagramVideoUrl || '',
+    instagramThumbnailUrl: initial.instagramThumbnailUrl || '',
     active: initial.active !== false,
   } : emptyProduct);
   const [images, setImages] = useState(() => savedImages(initial));
@@ -138,7 +144,14 @@ export default function ProductForm({ initial, items, onCancel, onSave }) {
       }
       const urls = uploaded.map(image => image.url).filter(Boolean);
       const primary = uploaded.find(image => image.key === primaryKey)?.url || urls[0];
-      const nextDraft = { ...draft, image: primary, images: urls };
+      const nextDraft = {
+        ...draft,
+        image: primary,
+        images: urls,
+        productVideoUrl: draft.productVideoUrl,
+        instagramVideoUrl: draft.instagramVideoUrl,
+        instagramThumbnailUrl: draft.instagramThumbnailUrl,
+      };
       const nextErrors = validateProductForm(nextDraft, items);
       setErrors(nextErrors);
       if (Object.keys(nextErrors).length) return;
@@ -208,6 +221,18 @@ export default function ProductForm({ initial, items, onCancel, onSave }) {
           </ul>
         )}
       </div>
+      <label className="admin-field">Product Video URL
+        <input value={draft.productVideoUrl} onChange={event => update('productVideoUrl', event.target.value)} placeholder="YouTube, Vimeo, or a direct video link" aria-invalid={Boolean(errors.productVideoUrl)} />
+        {errors.productVideoUrl && <span className="admin-error">{errors.productVideoUrl}</span>}
+      </label>
+      <label className="admin-field">Instagram Video/Reel URL
+        <input value={draft.instagramVideoUrl} onChange={event => update('instagramVideoUrl', event.target.value)} placeholder="https://www.instagram.com/reel/…" aria-invalid={Boolean(errors.instagramVideoUrl)} />
+        {errors.instagramVideoUrl && <span className="admin-error">{errors.instagramVideoUrl}</span>}
+      </label>
+      <label className="admin-field">Instagram thumbnail image URL
+        <input value={draft.instagramThumbnailUrl} onChange={event => update('instagramThumbnailUrl', event.target.value)} placeholder="Optional preview image if Instagram does not provide one" aria-invalid={Boolean(errors.instagramThumbnailUrl)} />
+        {errors.instagramThumbnailUrl && <span className="admin-error">{errors.instagramThumbnailUrl}</span>}
+      </label>
       <label className="admin-check">
         <input type="checkbox" checked={draft.active} onChange={event => update('active', event.target.checked)} />
         Visible on the shop

@@ -1,3 +1,4 @@
+import { instagramThumbnail, instagramVideo, productVideo } from './productMedia.js';
 import { sanitizeRichText } from './richText.js';
 
 export const PRODUCT_FIELDS = ['id', 'name', 'price', 'originalPrice', 'description', 'category', 'image', 'badge', 'active'];
@@ -151,6 +152,9 @@ export function normalizeProduct(raw) {
     discount: discountFor(price, originalPrice),
     description: sanitizeRichText(String(raw.description || '').trim()),
     badge: String(raw.badge || '').trim(),
+    productVideoUrl: String(raw.productVideoUrl || '').trim().slice(0, 500),
+    instagramVideoUrl: String(raw.instagramVideoUrl || '').trim().slice(0, 500),
+    instagramThumbnailUrl: String(raw.instagramThumbnailUrl || '').trim().slice(0, 500),
     active: raw.active !== false && String(raw.active).toLowerCase() !== 'false',
   };
 }
@@ -449,6 +453,13 @@ export function validateProductForm(draft, items) {
     const budget = productImageBudgetError(images, draft.image);
     if (budget) errors.images = budget;
   }
+
+  const video = String(draft.productVideoUrl || '').trim();
+  if (video && !productVideo(video)) errors.productVideoUrl = 'Enter a YouTube, Vimeo, or direct video link, or leave this blank.';
+  const instagram = String(draft.instagramVideoUrl || '').trim();
+  if (instagram && !instagramVideo(instagram)) errors.instagramVideoUrl = 'Enter an Instagram Reel or video post link, or leave this blank.';
+  const thumbnail = String(draft.instagramThumbnailUrl || '').trim();
+  if (thumbnail && !instagramThumbnail(thumbnail)) errors.instagramThumbnailUrl = 'Enter an image link for the Instagram preview, or leave this blank.';
   return errors;
 }
 
@@ -466,6 +477,9 @@ export function productFromForm(draft, items) {
     image: String(draft.image || '').trim(),
     images: Array.isArray(draft.images) ? draft.images : [],
     badge: String(draft.badge || '').trim(),
+    productVideoUrl: String(draft.productVideoUrl || '').trim(),
+    instagramVideoUrl: String(draft.instagramVideoUrl || '').trim(),
+    instagramThumbnailUrl: String(draft.instagramThumbnailUrl || '').trim(),
     active: Boolean(draft.active),
   });
 }
