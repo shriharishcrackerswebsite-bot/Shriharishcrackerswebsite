@@ -5,6 +5,7 @@ import { products } from '../../data/products';
 import { productList } from '../../data/productList';
 import { money } from '../../lib/money';
 import { normalizeListItem, normalizeProduct } from '../../lib/catalog';
+import { imageSources } from '../../lib/imageDelivery';
 import { useAdminCatalog } from '../../lib/firestoreCatalog';
 import { downloadCatalog } from '../../lib/excel';
 import ConfirmDialog from '../ConfirmDialog';
@@ -154,7 +155,7 @@ export default function CatalogManager({ kind, actor }) {
             return (
             <article className={`admin-list__row ${kind}`} role="row" key={item.id}>
               {kind === 'products' && (
-                <div data-label="Image"><img src={item.image || '/image.png'} alt="" /></div>
+                <div data-label="Image"><img src={imageSources(item.image, 'thumb').src} alt="" /></div>
               )}
               <div data-label="Name">
                 <strong>{item.name}</strong>

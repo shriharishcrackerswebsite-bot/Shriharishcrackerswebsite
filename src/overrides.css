@@ -2,7 +2,21 @@
 .product-photo img,
 .about-art img,
 .modal-image img,
-.cart-item img { mix-blend-mode: normal; }
+.cart-item img { mix-blend-mode: normal; object-fit: contain; object-position: center; image-rendering: auto; }
+.product-card:hover .product-photo img { transform: none; }
+.modal-zoom-open { width: 80%; height: 80%; margin: 0; padding: 0; border: 0; background: transparent; display: grid; place-items: center; cursor: zoom-in; }
+.modal-image .modal-zoom-open img { width: 100%; height: 100%; max-width: 100%; max-height: 100%; object-fit: contain; }
+.image-viewer { position: fixed; inset: 0; z-index: 80; display: grid; grid-template-rows: 1fr auto; background: rgba(18, 8, 28, .92); }
+.image-viewer__close { position: absolute; top: max(14px, env(safe-area-inset-top)); right: 14px; z-index: 2; width: 40px; height: 40px; border: 0; border-radius: 999px; background: #fff; color: #2a1238; display: grid; place-items: center; }
+.image-viewer__stage { min-height: 0; display: grid; place-items: center; overflow: hidden; touch-action: none; }
+.image-viewer__stage img { max-width: min(100vw, 1600px); max-height: calc(100svh - 88px); width: auto; height: auto; object-fit: contain; transform-origin: center center; user-select: none; }
+.image-viewer__tools { display: flex; justify-content: center; gap: 8px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); }
+.image-viewer__tools button { width: 42px; height: 42px; border: 0; border-radius: 999px; background: #fff; color: #2a1238; display: grid; place-items: center; }
+.image-viewer__tools button:disabled { opacity: .45; }
+.admin-image-url { display: flex; gap: 8px; margin-top: 8px; }
+.admin-image-url input { flex: 1; min-width: 0; }
+.admin-image-url button { min-height: 40px; padding: 0 12px; border: 1px solid var(--line); border-radius: 9px; background: #fff; color: var(--purple); font-size: 13px; font-weight: 800; white-space: nowrap; }
+.admin-image-url button:disabled { opacity: .45; }
 
 .firework,
 .offers::before,
@@ -41,7 +55,7 @@
 .modal-thumbs { display: flex; gap: 6px; min-width: 0; overflow-x: auto; }
 .modal-thumbs button { flex: 0 0 auto; width: 46px; height: 46px; padding: 0; border: 2px solid transparent; border-radius: 8px; background: #fff; overflow: hidden; }
 .modal-thumbs button.is-current { border-color: var(--orange); }
-.modal-thumbs img { width: 46px !important; height: 46px !important; object-fit: cover; mix-blend-mode: normal; }
+.modal-thumbs img { width: 46px !important; height: 46px !important; object-fit: contain; mix-blend-mode: normal; }
 .modal-media { min-width: 0; }
 .product-video { background: #120c22; }
 .product-video video, .product-video iframe { display: block; width: 100%; aspect-ratio: 16 / 9; border: 0; background: #000; }

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { categories } from '../../data/products';
-import { MAX_PRODUCT_IMAGES, productFromForm, productGallery, validateProductForm } from '../../lib/catalog';
+import { MAX_PRODUCT_IMAGES, isStoredImageUrl, productFromForm, productGallery, validateProductForm } from '../../lib/catalog';
 import { imageFileError, imageLimitMessage, imageUploadError, prepareProductImage } from '../../lib/productImages';
+import { imageSources } from '../../lib/imageDelivery';
 import DescriptionEditor from './DescriptionEditor';
 
 const emptyProduct = {
@@ -51,6 +52,7 @@ export default function ProductForm({ initial, items, onCancel, onSave }) {
   });
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const [saving, setSaving] = useState(false);
   const imagesRef = useRef(images);
   imagesRef.current = images;
@@ -95,6 +97,28 @@ export default function ProductForm({ initial, items, onCancel, onSave }) {
       setErrors(current => ({ ...current, images: '' }));
     }
     setStatus(problems[0] || '');
+  };
+
+  const addImageUrl = () => {
+    const url = imageUrl.trim();
+    if (!isStoredImageUrl(url) || url.startsWith('data:')) {
+      setStatus('Enter a valid image link.');
+      return;
+    }
+    if (images.length >= MAX_PRODUCT_IMAGES) {
+      setStatus(imageLimitMessage());
+      return;
+    }
+    if (images.some(image => image.url === url)) {
+      setStatus('That image link is already added.');
+      return;
+    }
+    const item = { key: `url-${Date.now()}`, url, preview: url, progress: 100 };
+    setImages(current => [...current, item]);
+    setPrimaryKey(current => current || item.key);
+    setImageUrl('');
+    setStatus('');
+    setErrors(current => ({ ...current, images: '' }));
   };
 
   const removeImage = key => {
@@ -198,14 +222,28 @@ export default function ProductForm({ initial, items, onCancel, onSave }) {
           Add images
           <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple disabled={saving || images.length >= MAX_PRODUCT_IMAGES} onChange={addFiles} />
         </label>
-        <small>Add up to {MAX_PRODUCT_IMAGES} JPEG, PNG, WebP, or GIF photos. New photos are resized and saved with the product. Existing image links stay unchanged. Choose one as the homepage image.</small>
+        <div className="admin-image-url">
+          <input
+            value={imageUrl}
+            onChange={event => setImageUrl(event.target.value)}
+            placeholder="High-resolution image URL"
+            disabled={saving || images.length >= MAX_PRODUCT_IMAGES}
+            onKeyDown={event => {
+              if (event.key !== 'Enter') return;
+              event.preventDefault();
+              addImageUrl();
+            }}
+          />
+          <button type="button" disabled={saving || images.length >= MAX_PRODUCT_IMAGES} onClick={addImageUrl}>Add URL</button>
+        </div>
+        <small>Add up to {MAX_PRODUCT_IMAGES} photos by upload or image link. Uploaded photos are resized to fit the product record. Image links, including Cloudinary links, are stored as entered. Choose one as the homepage image.</small>
         {errors.images && <span className="admin-error">{errors.images}</span>}
         {status && <span className="admin-error">{status}</span>}
         {images.length > 0 && (
           <ul className="admin-images">
             {images.map((image, index) => (
               <li key={image.key} className={image.key === primaryKey ? 'is-primary' : ''}>
-                <img src={image.preview || image.url} alt="" />
+                <img src={image.file ? image.preview : imageSources(image.url || image.preview, 'thumb').src} alt="" />
                 <div>
                   <strong>{image.key === primaryKey ? 'Homepage image' : `Image ${index + 1}`}</strong>
                   {image.file && image.progress < 100 && <small>Preparing {image.progress}%</small>}

@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { instagramThumbnail, instagramVideo, productVideo } from '../lib/productMedia';
+import ProductImage from './ProductImage';
+import ImageViewer from './ImageViewer';
 
 const FALLBACK = '/image.png';
 
@@ -60,9 +62,10 @@ export default function ProductGallery({ product }) {
   const preview = instagramThumbnail(product.instagramThumbnailUrl);
   const video = productVideo(product.productVideoUrl);
   const [index, setIndex] = useState(primaryIndex);
-  const [failed, setFailed] = useState({});
+  const [zoomed, setZoomed] = useState(false);
   const startX = useRef(null);
-  const current = failed[index] ? FALLBACK : (images[index] || FALLBACK);
+  const swiped = useRef(false);
+  const current = images[index] || FALLBACK;
   const multiple = images.length > 1;
   const showThumbs = multiple || Boolean(instagram);
   const go = next => setIndex((next + images.length) % images.length);
@@ -75,16 +78,21 @@ export default function ProductGallery({ product }) {
         onTouchEnd={event => {
           if (!multiple || startX.current == null) return;
           const delta = event.changedTouches[0].clientX - startX.current;
-          if (Math.abs(delta) > 40) go(index + (delta < 0 ? 1 : -1));
+          if (Math.abs(delta) > 40) {
+            swiped.current = true;
+            go(index + (delta < 0 ? 1 : -1));
+          }
           startX.current = null;
         }}
       >
         {product.badge ? <span>{product.badge}</span> : null}
-        <img
-          src={current}
-          alt={photoAlt(product.name, index, images.length, primaryIndex)}
-          onError={() => setFailed(value => ({ ...value, [index]: true }))}
-        />
+        <button type="button" className="modal-zoom-open" onClick={() => { if (swiped.current) { swiped.current = false; return; } setZoomed(true); }} aria-label={`View ${product.name} photo larger`}>
+          <ProductImage
+            url={current}
+            preset="detail"
+            alt={photoAlt(product.name, index, images.length, primaryIndex)}
+          />
+        </button>
         {showThumbs && (
           <div className="modal-gallery">
             {multiple && (
@@ -102,10 +110,10 @@ export default function ProductGallery({ product }) {
                   aria-current={thumbIndex === index ? 'true' : undefined}
                   onClick={() => setIndex(thumbIndex)}
                 >
-                  <img
-                    src={failed[thumbIndex] ? FALLBACK : url}
+                  <ProductImage
+                    url={url}
+                    preset="thumb"
                     alt={photoAlt(product.name, thumbIndex, images.length, primaryIndex)}
-                    onError={() => setFailed(value => ({ ...value, [thumbIndex]: true }))}
                   />
                 </button>
               ))}
@@ -120,6 +128,15 @@ export default function ProductGallery({ product }) {
         )}
       </div>
       {video && <ProductVideo name={product.name} video={video} />}
+      {zoomed && (
+        <ImageViewer
+          images={images}
+          index={index}
+          name={product.name}
+          onIndex={setIndex}
+          onClose={() => setZoomed(false)}
+        />
+      )}
     </div>
   );
 }

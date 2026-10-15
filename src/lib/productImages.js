@@ -2,7 +2,7 @@ import { MAX_INLINE_IMAGE_CHARS, MAX_PRODUCT_IMAGES } from './catalog.js';
 
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
-const MAX_EDGE = 640;
+const MAX_EDGE = 1200;
 
 export function imageFileError(file) {
   if (!TYPES.has(file?.type)) return `${file?.name || 'That file'} must be a JPEG, PNG, WebP, or GIF.`;
@@ -53,8 +53,8 @@ function loadImage(file) {
 async function compressProductImage(file) {
   const loaded = await loadImage(file);
   try {
-    let edge = MAX_EDGE;
-    let quality = 0.72;
+    let edge = Math.min(MAX_EDGE, Math.max(loaded.source.width, loaded.source.height) || MAX_EDGE);
+    let quality = 0.82;
     let dataUrl = '';
     for (let attempt = 0; attempt < 8; attempt += 1) {
       dataUrl = drawJpeg(loaded.source, edge, quality);
