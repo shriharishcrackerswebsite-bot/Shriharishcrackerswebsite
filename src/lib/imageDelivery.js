@@ -34,20 +34,21 @@ function parseCloudinary(value) {
 
 export function imageSources(url, preset = 'card') {
   const safe = String(url || '').trim() || '/image.png';
-  const plain = { src: safe, zoom: safe };
+  const plain = { src: safe, zoom: safe, original: safe };
   if (safe.startsWith('data:') || safe.startsWith('/')) return plain;
   const cloud = parseCloudinary(safe);
   if (!cloud) return plain;
-  if (cloud.transformed) return { src: safe, zoom: cloud.original };
-  if (preset === 'thumb') return { src: cloud.url(160), zoom: cloud.url(0) };
-  const widths = preset === 'card' ? [480, 800] : [800, 1280, 1600];
+  const zoom = cloud.url(0);
+  if (preset === 'thumb') return { src: cloud.url(192), zoom, original: cloud.original };
+  const widths = preset === 'card' ? [480, 960] : [960, 1440, 2000];
   const sizes = preset === 'card'
-    ? '(max-width: 660px) 46vw, 280px'
-    : '(max-width: 920px) 92vw, 520px';
+    ? '(max-width: 660px) 46vw, 300px'
+    : '(max-width: 660px) 100vw, 640px';
   return {
     src: cloud.url(widths[widths.length - 1]),
     srcSet: widths.map(width => `${cloud.url(width)} ${width}w`).join(', '),
     sizes,
-    zoom: cloud.url(0),
+    zoom,
+    original: cloud.original,
   };
 }

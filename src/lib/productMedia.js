@@ -43,15 +43,16 @@ export function instagramVideo(value) {
   const url = httpUrl(value);
   if (!url) return null;
   const parsed = new URL(url);
-  const host = parsed.hostname.replace(/^www\./, '');
-  if (host !== 'instagram.com') return null;
-  const match = parsed.pathname.match(/^\/(?:reel|reels|p|tv)\/([A-Za-z0-9_-]+)/);
-  if (!match) return null;
+  const host = parsed.hostname.replace(/^www\./, '').replace(/^m\./, '');
+  if (host !== 'instagram.com' && host !== 'instagr.am') return null;
+  if (parsed.pathname === '/' || parsed.pathname === '') return null;
+  const match = parsed.pathname.match(/\/(?:reel|reels|p|tv)\/([A-Za-z0-9_-]{5,})/);
+  if (!match) return { href: url, thumbnail: '' };
   const code = match[1];
-  const kind = parsed.pathname.startsWith('/p/') || parsed.pathname.startsWith('/tv/') ? 'p' : 'reel';
+  const kind = /\/(?:p|tv)\//.test(parsed.pathname) ? 'p' : 'reel';
   return {
     href: `https://www.instagram.com/${kind}/${code}/`,
-    thumbnail: `https://www.instagram.com/p/${code}/media/?size=m`,
+    thumbnail: `https://www.instagram.com/p/${encodeURIComponent(code)}/media/?size=l`,
   };
 }
 

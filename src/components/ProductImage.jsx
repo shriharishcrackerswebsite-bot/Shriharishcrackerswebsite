@@ -10,12 +10,20 @@ export default function ProductImage({ url, alt, preset = 'card' }) {
       srcSet={sources.srcSet}
       sizes={sources.sizes}
       alt={alt}
-      loading="lazy"
+      loading={preset === 'detail' ? 'eager' : 'lazy'}
       decoding="async"
       onError={event => {
         const image = event.currentTarget;
-        if (image.dataset.fallback) return;
-        image.dataset.fallback = '1';
+        if (image.dataset.fallback === 'logo') return;
+        const original = sources.original;
+        if (original && image.dataset.fallback !== 'original' && image.src !== original) {
+          image.dataset.fallback = 'original';
+          image.removeAttribute('srcset');
+          image.removeAttribute('sizes');
+          image.src = original;
+          return;
+        }
+        image.dataset.fallback = 'logo';
         image.removeAttribute('srcset');
         image.src = FALLBACK;
       }}

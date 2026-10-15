@@ -140,3 +140,63 @@
   .hero h2.hero-title { font-size: 46px; }
   .cart-drawer footer.checkout-footer { padding-right: 18px; padding-left: 18px; }
 }
+@media (min-width: 661px) {
+  .product-modal {
+    width: min(1080px, calc(100vw - 40px));
+    max-height: calc(100dvh - 32px);
+    overflow: hidden;
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+    align-items: stretch;
+  }
+  .modal-media {
+    min-width: 0;
+    min-height: 0;
+    max-height: calc(100dvh - 32px);
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    background: #f6edf5;
+  }
+  .modal-image {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    overflow: visible;
+  }
+  .modal-zoom-open {
+    width: 100%;
+    height: min(62vh, 560px);
+    flex: 0 0 auto;
+    min-height: 280px;
+    overflow: hidden;
+  }
+  .modal-image .modal-zoom-open img {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    object-fit: contain;
+    object-position: center;
+  }
+  .modal-gallery {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    flex: 0 0 auto;
+    padding: 10px 12px 14px;
+    background: #f6edf5;
+  }
+  .modal-copy {
+    min-width: 0;
+    max-height: calc(100dvh - 32px);
+    overflow: auto;
+    padding: 52px 28px 24px;
+  }
+  .modal-copy h2,
+  .modal-description { overflow-wrap: anywhere; }
+  .modal-actions { position: static; }
+}

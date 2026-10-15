@@ -1,5 +1,6 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { imageSources } from '../lib/imageDelivery';
 import { instagramThumbnail, instagramVideo, productVideo } from '../lib/productMedia';
 import ProductImage from './ProductImage';
 import ImageViewer from './ImageViewer';
@@ -21,13 +22,30 @@ function InstagramMark() {
 }
 
 function InstagramThumb({ productName, post, preview }) {
-  const sources = [preview, post.thumbnail].filter(Boolean);
+  const previewSource = preview ? imageSources(preview, 'thumb') : null;
+  const sources = [previewSource?.src, previewSource?.original, post.thumbnail]
+    .filter((url, index, list) => url && list.indexOf(url) === index);
   const [step, setStep] = useState(0);
-  const src = sources[step];
+  const [ready, setReady] = useState(false);
+  const src = sources[step] || '';
+
+  useEffect(() => {
+    setReady(false);
+  }, [src]);
 
   return (
     <a className="is-instagram" href={post.href} target="_blank" rel="noopener noreferrer" aria-label={`Open ${productName} on Instagram`}>
-      {src ? <img src={src} alt="" onError={() => setStep(value => value + 1)} /> : <span className="instagram-fallback">Instagram</span>}
+      {src && (
+        <img
+          src={src}
+          alt=""
+          hidden={!ready}
+          referrerPolicy="no-referrer"
+          onLoad={() => setReady(true)}
+          onError={() => setStep(value => value + 1)}
+        />
+      )}
+      {!ready && <span className="instagram-fallback">Instagram</span>}
       <i><InstagramMark /></i>
     </a>
   );

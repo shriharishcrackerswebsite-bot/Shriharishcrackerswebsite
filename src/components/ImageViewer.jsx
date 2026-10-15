@@ -7,17 +7,21 @@ const FALLBACK = '/image.png';
 export default function ImageViewer({ images, index, name, onIndex, onClose }) {
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [failed, setFailed] = useState(false);
+  const [failed, setFailed] = useState('');
   const pinch = useRef(null);
   const drag = useRef(null);
   const stageRef = useRef(null);
   const source = imageSources(images[index], 'detail');
-  const src = failed ? FALLBACK : source.zoom;
+  const src = failed === 'logo'
+    ? FALLBACK
+    : failed === 'original'
+      ? (source.original || FALLBACK)
+      : source.zoom;
 
   useEffect(() => {
     setScale(1);
     setOffset({ x: 0, y: 0 });
-    setFailed(false);
+    setFailed('');
   }, [index]);
 
   useEffect(() => {
@@ -112,7 +116,7 @@ export default function ImageViewer({ images, index, name, onIndex, onClose }) {
           alt={name}
           style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})` }}
           draggable="false"
-          onError={() => setFailed(true)}
+          onError={() => setFailed(current => (current !== 'original' && source.original && source.original !== source.zoom ? 'original' : 'logo'))}
         />
       </div>
       <div className="image-viewer__tools">
