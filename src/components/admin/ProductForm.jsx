@@ -27,7 +27,12 @@ function savedImages(initial) {
     url,
     preview: url,
     progress: 100,
+    error: '',
   }));
+}
+
+function isUploading(image) {
+  return Boolean(image.file) && !image.url && !image.error;
 }
 
 export default function ProductForm({ initial, items, onCancel, onSave }) {
@@ -57,16 +62,46 @@ export default function ProductForm({ initial, items, onCancel, onSave }) {
   const imagesRef = useRef(images);
   imagesRef.current = images;
   const categoryOptions = categories.filter(category => category.id !== 'all');
+  const uploading = images.some(isUploading);
+  const hasUploadError = images.some(image => image.error);
 
   useEffect(() => () => {
     imagesRef.current.forEach(image => {
-      if (image.file && image.preview?.startsWith('blob:')) URL.revokeObjectURL(image.preview);
+      if (image.preview?.startsWith('blob:')) URL.revokeObjectURL(image.preview);
     });
   }, []);
 
   const update = (field, value) => {
     setDraft(current => ({ ...current, [field]: value }));
     setErrors(current => ({ ...current, [field]: '' }));
+  };
+
+  const uploadFile = async (key, file) => {
+    try {
+      const url = await prepareProductImage(file, progress => {
+        setImages(current => current.map(item => (item.key === key ? { ...item, progress, error: '' } : item)));
+      });
+      setImages(current => current.map(item => {
+        if (item.key !== key) return item;
+        if (item.preview?.startsWith('blob:')) URL.revokeObjectURL(item.preview);
+        return {
+          key: item.key,
+          url,
+          preview: url,
+          progress: 100,
+          error: '',
+        };
+      }));
+      setStatus('');
+      setErrors(current => ({ ...current, images: '' }));
+    } catch (error) {
+      setImages(current => current.map(item => (
+        item.key === key
+          ? { ...item, progress: 0, error: imageUploadError(error) }
+          : item
+      )));
+      setStatus(imageUploadError(error));
+    }
   };
 
   const addFiles = event => {
@@ -89,12 +124,14 @@ export default function ProductForm({ initial, items, onCancel, onSave }) {
         file,
         preview: URL.createObjectURL(file),
         progress: 0,
+        error: '',
       });
     });
     if (next.length) {
       setImages(current => [...current, ...next]);
       setPrimaryKey(current => current || next[0].key);
       setErrors(current => ({ ...current, images: '' }));
+      next.forEach(image => uploadFile(image.key, image.file));
     }
     setStatus(problems[0] || '');
   };
@@ -113,7 +150,7 @@ export default function ProductForm({ initial, items, onCancel, onSave }) {
       setStatus('That image link is already added.');
       return;
     }
-    const item = { key: `url-${Date.now()}`, url, preview: url, progress: 100 };
+    const item = { key: `url-${Date.now()}`, url, preview: url, progress: 100, error: '' };
     setImages(current => [...current, item]);
     setPrimaryKey(current => current || item.key);
     setImageUrl('');
@@ -123,10 +160,11 @@ export default function ProductForm({ initial, items, onCancel, onSave }) {
 
   const removeImage = key => {
     const image = images.find(item => item.key === key);
-    if (image?.file && image.preview?.startsWith('blob:')) URL.revokeObjectURL(image.preview);
+    if (image?.preview?.startsWith('blob:')) URL.revokeObjectURL(image.preview);
     const remaining = images.filter(item => item.key !== key);
     setImages(remaining);
     setPrimaryKey(primary => (primary === key ? remaining[0]?.key || '' : primary));
+    if (!remaining.some(item => item.error || isUploading(item))) setStatus('');
   };
 
   const moveImage = (key, direction) => {
@@ -143,31 +181,23 @@ export default function ProductForm({ initial, items, onCancel, onSave }) {
 
   const submit = async event => {
     event.preventDefault();
-    if (saving) return;
+    if (saving || uploading) return;
     if (!images.length) {
       setErrors(current => ({ ...current, images: 'Add at least one product image.' }));
+      return;
+    }
+    if (hasUploadError || images.some(image => !image.url)) {
+      setErrors(current => ({
+        ...current,
+        images: 'Wait for every photo to finish uploading, or remove any photo that failed.',
+      }));
       return;
     }
     setSaving(true);
     setStatus('');
     try {
-      const uploaded = [];
-      for (let index = 0; index < images.length; index += 1) {
-        const image = images[index];
-        if (image.url) {
-          uploaded.push(image);
-          continue;
-        }
-        setStatus(`Preparing image ${index + 1} of ${images.length}…`);
-        const url = await prepareProductImage(image.file, progress => {
-          setImages(current => current.map(item => (item.key === image.key ? { ...item, progress } : item)));
-        });
-        const saved = { ...image, url, preview: url, progress: 100, file: undefined };
-        uploaded.push(saved);
-        setImages(current => current.map(item => (item.key === image.key ? saved : item)));
-      }
-      const urls = uploaded.map(image => image.url).filter(Boolean);
-      const primary = uploaded.find(image => image.key === primaryKey)?.url || urls[0];
+      const urls = images.map(image => image.url).filter(Boolean);
+      const primary = images.find(image => image.key === primaryKey)?.url || urls[0];
       const nextDraft = {
         ...draft,
         image: primary,
@@ -184,7 +214,6 @@ export default function ProductForm({ initial, items, onCancel, onSave }) {
       setStatus(imageUploadError(error));
     } finally {
       setSaving(false);
-      setStatus(current => (current.startsWith('Preparing') ? '' : current));
     }
   };
 
@@ -220,37 +249,38 @@ export default function ProductForm({ initial, items, onCancel, onSave }) {
       <div className="admin-field">Images *
         <label className="admin-file">
           Add images
-          <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple disabled={saving || images.length >= MAX_PRODUCT_IMAGES} onChange={addFiles} />
+          <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple disabled={saving || uploading || images.length >= MAX_PRODUCT_IMAGES} onChange={addFiles} />
         </label>
         <div className="admin-image-url">
           <input
             value={imageUrl}
             onChange={event => setImageUrl(event.target.value)}
-            placeholder="High-resolution image URL"
-            disabled={saving || images.length >= MAX_PRODUCT_IMAGES}
+            placeholder="Optional existing image URL"
+            disabled={saving || uploading || images.length >= MAX_PRODUCT_IMAGES}
             onKeyDown={event => {
               if (event.key !== 'Enter') return;
               event.preventDefault();
               addImageUrl();
             }}
           />
-          <button type="button" disabled={saving || images.length >= MAX_PRODUCT_IMAGES} onClick={addImageUrl}>Add URL</button>
+          <button type="button" disabled={saving || uploading || images.length >= MAX_PRODUCT_IMAGES} onClick={addImageUrl}>Add URL</button>
         </div>
-        <small>Add up to {MAX_PRODUCT_IMAGES} photos by upload or image link. Uploaded photos are resized to fit the product record. Image links, including Cloudinary links, are stored as entered. Choose one as the homepage image.</small>
+        <small>Add up to {MAX_PRODUCT_IMAGES} photos. Selected photos upload to Cloudinary automatically and only the image link is saved with the product. Existing image links stay unchanged until you replace or remove them. Choose one as the homepage image.</small>
         {errors.images && <span className="admin-error">{errors.images}</span>}
         {status && <span className="admin-error">{status}</span>}
         {images.length > 0 && (
           <ul className="admin-images">
             {images.map((image, index) => (
               <li key={image.key} className={image.key === primaryKey ? 'is-primary' : ''}>
-                <img src={image.file ? image.preview : imageSources(image.url || image.preview, 'thumb').src} alt="" />
+                <img src={image.file || !image.url ? image.preview : imageSources(image.url, 'thumb').src} alt="" />
                 <div>
                   <strong>{image.key === primaryKey ? 'Homepage image' : `Image ${index + 1}`}</strong>
-                  {image.file && image.progress < 100 && <small>Preparing {image.progress}%</small>}
+                  {isUploading(image) && <small>Uploading {image.progress || 0}%</small>}
+                  {image.error && <small className="admin-error">{image.error}</small>}
                   <div className="admin-image-actions">
-                    <button type="button" disabled={saving || image.key === primaryKey} onClick={() => setPrimaryKey(image.key)}>Use on homepage</button>
-                    <button type="button" disabled={saving || index === 0} onClick={() => moveImage(image.key, -1)}>Earlier</button>
-                    <button type="button" disabled={saving || index === images.length - 1} onClick={() => moveImage(image.key, 1)}>Later</button>
+                    <button type="button" disabled={saving || uploading || !image.url || image.key === primaryKey} onClick={() => setPrimaryKey(image.key)}>Use on homepage</button>
+                    <button type="button" disabled={saving || uploading || index === 0} onClick={() => moveImage(image.key, -1)}>Earlier</button>
+                    <button type="button" disabled={saving || uploading || index === images.length - 1} onClick={() => moveImage(image.key, 1)}>Later</button>
                     <button type="button" disabled={saving} onClick={() => removeImage(image.key)}>Remove</button>
                   </div>
                 </div>
@@ -277,7 +307,9 @@ export default function ProductForm({ initial, items, onCancel, onSave }) {
       </label>
       <div className="admin-form-actions">
         <button className="button ghost" type="button" onClick={onCancel} disabled={saving}>Cancel</button>
-        <button className="button primary" type="submit" disabled={saving}>{saving ? 'Saving…' : initial ? 'Save product' : 'Add product'}</button>
+        <button className="button primary" type="submit" disabled={saving || uploading || hasUploadError}>
+          {saving ? 'Saving…' : uploading ? 'Uploading…' : initial ? 'Save product' : 'Add product'}
+        </button>
       </div>
     </form>
   );
