@@ -2,17 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/image.png" />
-    <link rel="apple-touch-icon" href="/image.png" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#241a45" />
     <meta name="robots" content="index, follow" />
-    <meta name="description" content="Shri Harish Crackers is a crackers shop in Valliyur, Tamil Nadu, on Eruvadi Main Road near Rotary Club. Enquire about Diwali crackers and fireworks in Valliyur, also known as Valiyoor, by phone or WhatsApp." />
+    <meta name="description" content="Shri Harish Crackers is a crackers shop in Valliyur, Tirunelveli district, Tamil Nadu, near Rotary Club on Eruvadi Main Road. Enquire for Diwali crackers in Valliyur by phone or WhatsApp." />
     <link rel="canonical" href="https://shriharishcrackers.com/" />
     <meta property="og:site_name" content="Shri Harish Crackers" />
     <meta property="og:title" content="Shri Harish Crackers Valliyur | Crackers Shop in Valliyur" />
-    <meta property="og:description" content="Shri Harish Crackers is a crackers shop in Valliyur, Tamil Nadu, on Eruvadi Main Road near Rotary Club. Enquire about Diwali crackers and fireworks in Valliyur, also known as Valiyoor, by phone or WhatsApp." />
+    <meta property="og:description" content="Shri Harish Crackers is a crackers shop in Valliyur, Tirunelveli district, Tamil Nadu, near Rotary Club on Eruvadi Main Road. Enquire for Diwali crackers in Valliyur by phone or WhatsApp." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://shriharishcrackers.com/" />
     <meta property="og:image" content="https://shriharishcrackers.com/og-image.jpg" />
@@ -24,26 +24,50 @@
     <meta property="og:locale" content="en_IN" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Shri Harish Crackers Valliyur | Crackers Shop in Valliyur" />
-    <meta name="twitter:description" content="Shri Harish Crackers is a crackers shop in Valliyur, Tamil Nadu, on Eruvadi Main Road near Rotary Club. Enquire about Diwali crackers and fireworks in Valliyur, also known as Valiyoor, by phone or WhatsApp." />
+    <meta name="twitter:description" content="Shri Harish Crackers is a crackers shop in Valliyur, Tirunelveli district, Tamil Nadu, near Rotary Club on Eruvadi Main Road. Enquire for Diwali crackers in Valliyur by phone or WhatsApp." />
     <meta name="twitter:image" content="https://shriharishcrackers.com/og-image.jpg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <script type="application/ld+json">
+    <script type="application/ld+json" id="site-jsonld">
       {
         "@context": "https://schema.org",
         "@graph": [
           {
-            "@type": "Store",
+            "@type": ["Store", "LocalBusiness"],
             "@id": "https://shriharishcrackers.com/#business",
             "name": "Shri Harish Crackers",
-            "alternateName": ["Shri Harish Crackers Valliyur", "Harish Crackers Valliyur", "Shri Harish Crackers Valiyoor"],
-            "description": "Shri Harish Crackers is a crackers shop in Valliyur, Tamil Nadu, on Eruvadi Main Road near Rotary Club. Customers can visit the shop or send an enquiry for Diwali crackers and fireworks.",
+            "alternateName": [
+              "Shri Harish Crackers Valliyur",
+              "Harish Crackers Valliyur",
+              "Shri Harish Crackers Valiyoor"
+            ],
+            "description": "Shri Harish Crackers is a crackers shop in Valliyur, Tirunelveli district, Tamil Nadu, on Eruvadi Main Road near Rotary Club. Customers can visit the shop or enquire for Diwali crackers and fireworks in Valliyur.",
             "url": "https://shriharishcrackers.com/",
-            "image": "https://shriharishcrackers.com/image.png",
-            "logo": "https://shriharishcrackers.com/image.png",
+            "image": [
+              "https://shriharishcrackers.com/logo.png",
+              "https://shriharishcrackers.com/og-image.jpg"
+            ],
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://shriharishcrackers.com/logo.png",
+              "contentUrl": "https://shriharishcrackers.com/logo.png"
+            },
             "telephone": ["+919443184404", "+919629917375"],
             "hasMap": "https://share.google/FeqKCSN24rvXkzKHw",
-            "areaServed": "Valliyur, Tamil Nadu",
+            "areaServed": [
+              {
+                "@type": "City",
+                "name": "Valliyur"
+              },
+              {
+                "@type": "AdministrativeArea",
+                "name": "Tirunelveli district"
+              },
+              {
+                "@type": "State",
+                "name": "Tamil Nadu"
+              }
+            ],
             "sameAs": ["https://www.instagram.com/shri_harish_crackers_valliyur"],
             "address": {
               "@type": "PostalAddress",
@@ -59,7 +83,20 @@
             "@id": "https://shriharishcrackers.com/#website",
             "url": "https://shriharishcrackers.com/",
             "name": "Shri Harish Crackers",
-            "publisher": { "@id": "https://shriharishcrackers.com/#business" }
+            "description": "Official website of Shri Harish Crackers, a crackers shop in Valliyur, Tamil Nadu.",
+            "publisher": { "@id": "https://shriharishcrackers.com/#business" },
+            "inLanguage": "en-IN"
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://shriharishcrackers.com/#organization",
+            "name": "Shri Harish Crackers",
+            "url": "https://shriharishcrackers.com/",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://shriharishcrackers.com/logo.png"
+            },
+            "sameAs": ["https://www.instagram.com/shri_harish_crackers_valliyur"]
           }
         ]
       }

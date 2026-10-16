@@ -1,6 +1,7 @@
 {
-  "name": "Shri Harish Crackers",
+  "name": "Shri Harish Crackers Valliyur",
   "short_name": "Shri Harish",
+  "description": "Crackers shop in Valliyur, Tamil Nadu",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -8,8 +9,14 @@
   "theme_color": "#241a45",
   "icons": [
     {
-      "src": "/image.png",
-      "sizes": "1280x1280",
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
       "type": "image/png",
       "purpose": "any"
     }

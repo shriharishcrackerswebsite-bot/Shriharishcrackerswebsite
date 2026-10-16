@@ -46,8 +46,8 @@ export default function ProductListPage({ shopCartOpen, onCloseShopCart }) {
   return (
     <section className="plist">
       <header className="plist-intro">
-        <h1>Product List</h1>
-        <p>Browse the Shri Harish Crackers product list in Valliyur, choose quantities, and send an enquiry.</p>
+        <h1>Product List for Diwali Crackers in Valliyur</h1>
+        <p>Browse the Shri Harish Crackers product list in Valliyur, Tirunelveli district. Review product names and prices, choose quantities, and send an enquiry for Diwali crackers and fireworks.</p>
       </header>
 
       <div className="plist-toolbar">

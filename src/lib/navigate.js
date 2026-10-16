@@ -33,6 +33,10 @@ export function goSection(id) {
     navigate('/product-list');
     return;
   }
+  if (id === 'blog') {
+    navigate('/blog');
+    return;
+  }
 
   if (normalizePath(window.location.pathname) !== '/') {
     window.location.assign(id === 'home' ? '/' : `/#${id}`);
@@ -42,4 +46,8 @@ export function goSection(id) {
   const element = document.getElementById(id);
   if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
   else window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+export function isBlogPath(path) {
+  return path === '/blog' || path.startsWith('/blog/');
 }
